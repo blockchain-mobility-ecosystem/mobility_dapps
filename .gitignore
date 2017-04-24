@@ -1,1 +1,5 @@
 *.swp
+
+
+# truffle build
+/build
