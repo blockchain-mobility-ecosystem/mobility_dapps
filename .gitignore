@@ -3,3 +3,6 @@
 
 # truffle build
 /build
+
+# packages
+/node_modules

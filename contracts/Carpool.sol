@@ -55,7 +55,7 @@ contract Carpool is CarpoolTypes {
     // Carpool events 
     event DriverRegistered(address account, bytes32 name);
     event CarRegistered(address account, bytes17 vin);
-    event UserRegistered(address account, bytes32 name);
+    event UserRegistered(address indexed account, bytes32 indexed name);
     event CarReserved(uint32 carId, address customer);
 
     function Carpool() {
@@ -75,7 +75,6 @@ contract Carpool is CarpoolTypes {
         driver.license = license;
         driver.exists = true;
         drivers[msg.sender] = driver;
-
         DriverRegistered(msg.sender, name);
         return SUCCESS;
     }
@@ -87,9 +86,8 @@ contract Carpool is CarpoolTypes {
         bytes32 model, 
         Color color, 
         Transmission transmission,
-        uint8 seats)
-        returns(uint error)
-    {
+        uint8 seats
+    ) returns(uint error) {
         Account driver = drivers[msg.sender];
         if (!driver.exists) {
             return ACCOUNT_NOT_EXIST;
@@ -141,18 +139,14 @@ contract Carpool is CarpoolTypes {
         uint8 numOfSeats,
         uint start,
         uint end
-    ) 
-        returns (uint error, 
-        uint reservationNum
-    ) 
-    {
+    ) returns (uint error) {
         Account user = users[msg.sender];
-        if (!user.exists) return (ACCOUNT_NOT_EXIST, 0);
+        if (!user.exists) return ACCOUNT_NOT_EXIST;
 
         Car car = idToCar[carId];
-        if (!car.exists) return (CAR_NOT_REGISTERED, 0);
+        if (!car.exists) return CAR_NOT_REGISTERED;
 
-        if (car.status == CarStatus.UNAVAILABLE) return (CAR_NOT_AVAILABLE, 0);
+        if (car.status == CarStatus.UNAVAILABLE) return CAR_NOT_AVAILABLE;
 
         Reservation rsvt = reservations[curRsvtNum];
         rsvt.num = curRsvtNum;
@@ -166,47 +160,47 @@ contract Carpool is CarpoolTypes {
         car.rsvt = rsvt.num;
 
         CarReserved(carId, user.addr);
-        return (SUCCESS, rsvt.num);
+        return SUCCESS;
     }
     
     /// About to check out.
     function checkout() returns (bool) {
     }
 
-    // Events related to car access authoriization
+    // -$- Events related to car access authoriization -$- 
     event UnlockAuthorized(uint32 carId, address user);
     event LockAuthorized(uint32 carId, address user);
 
-    function requestAuth2Unlock(uint32 carId) returns (uint error, uint token) {
+    function requestAuth2Unlock(uint32 carId) returns (uint error) {
         Account user = users[msg.sender];
         if (!user.exists) {
-            return (ACCOUNT_NOT_EXIST, 0);
+            return ACCOUNT_NOT_EXIST;
         }
         
         Car car = idToCar[carId];
         Reservation rsvt = reservations[car.rsvt];
         if (rsvt.customer != user.addr) {
-            return (ACCOUNT_NOT_AUTHORIZE_ACCESS_CAR, 0);
+            return ACCOUNT_NOT_AUTHORIZE_ACCESS_CAR;
         }
         // TODO: generate token for car access.
         UnlockAuthorized(carId, user.addr);
-        return (SUCCESS, 0);
+        return SUCCESS;
     }
 
-    function requestAuth2Lock(uint32 carId) returns (uint error, uint token) {
+    function requestAuth2Lock(uint32 carId) returns (uint error) {
         Account user = users[msg.sender];
         if (!user.exists) {
-            return (ACCOUNT_NOT_EXIST, 0);
+            return ACCOUNT_NOT_EXIST;
         }
         
         Car car = idToCar[carId];
         Reservation rsvt = reservations[car.rsvt];
         if (rsvt.customer != user.addr) {
-            return (ACCOUNT_NOT_AUTHORIZE_ACCESS_CAR, 0);
+            return ACCOUNT_NOT_AUTHORIZE_ACCESS_CAR;
         }
         // TODO: generate token for car access.
         LockAuthorized(carId, user.addr);
-        return (SUCCESS, 0);
+        return SUCCESS;
     }
     
 }
