@@ -1,6 +1,7 @@
 const Web3 = require('web3');
 const contract = require('truffle-contract');
 const carpool_artifacts = require('../../build/contracts/Carpool.json');
+const utils = require('./app-utils');
 
 var web3 = new Web3();
 web3.setProvider(new web3.providers.HttpProvider('http://localhost:8545'));
@@ -27,18 +28,18 @@ web3.eth.getAccounts(function(err, accs) {
 });
 
 var carpool;
-const accountIdx = 2;
+const accountIdx = 3;
 // -$- Register a driver -$-
 Carpool.deployed().then(function(instance) {
     carpool = instance;
     return carpool.registerDriver.call('lex0', 'L8327788', {
-        from: accounts[accountIdx], gas: 154000});
+        from: accounts[accountIdx]});
 }).then(function(result) {
     var error = result.toNumber();
-    if (error == 0) {
+    if (!error) {
         carpool.registerDriver('lex0', 'L8327788', {from: accounts[accountIdx], 
             gas: 154000}).then(function(result) {
-            var log = retrieveEventLog(result.logs, 'DriverRegistered');
+            var log = utils.retrieveEventLog(result.logs, 'DriverRegistered');
             if (log) {
                 console.log('Driver registered with account %s', log.args.account)
                 console.log('\tname: %s', web3.toAscii(log.args.name));
@@ -51,19 +52,4 @@ Carpool.deployed().then(function(instance) {
     console.log('Error' + err);
 });
 
-/**
- * Retrieve transaction logs.
- * 
- * @param {Array} logs Array of decoded events that were triggered within this transaction.
- * @param {String} name The name of the event;
- */
-function retrieveEventLog(logs, name) {
-    for (var i = 0; i < logs.length; i++) {
-        var log = logs[i];
-        if (log.event == name) {
-            return log;
-        }
-    }
-    return null;
-}
 
