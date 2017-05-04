@@ -1,5 +1,5 @@
 var Carpool = artifacts.require('Carpool');
-var utils = require('../app/javascripts/app-utils');
+var utils = require('../app/common/javascripts/app-utils');
 var Web3 = require('web3');
 var web3 = new Web3();
 
