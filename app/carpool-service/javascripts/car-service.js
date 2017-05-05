@@ -7,6 +7,8 @@ const path = require('path')
 const SerialPort = require('serialport');                                         
 const Web3 = require('web3');
 
+const keyfob = require('./keyfob');
+
 /**
  * The in-car service class.
  * @constructor
@@ -34,6 +36,8 @@ function CarService() {
         baudrate: 9600,                                                             
         parser: SerialPort.parsers.readline('\r\n')                                 
     });
+
+    self.keyfob = keyfob; 
 }
 
 /**
