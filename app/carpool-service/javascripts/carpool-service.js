@@ -1,66 +1,17 @@
 const series = require('async/series');
-const IPFS = require('ipfs');
-const os = require('os')
-const path = require('path')
 const contract = require('truffle-contract');
-const Web3 = require('web3');
 
+const CarService = require('./car-service');
 const utils = require('../../common/javascripts/app-utils');
 
-const node = new IPFS({
-    repo: path.join(os.tmpdir() + '/' + new Date().toString()),
-    init: false,
-    start: false,
-    EXPERIMENTAL: {
-        pubsub: true
-    }
-});
+var car = new CarService();
+car.initWeb3();
 
-var web3 = new Web3();
-web3.setProvider(new web3.providers.HttpProvider('http://localhost:8545'));
+const carpoolArtifacts = require('../../../build/contracts/Carpool.json');
+var Carpool = contract(carpoolArtifacts);
+Carpool.setProvider(car.web3.currentProvider);
 
-// Carpool contracts
-const carpool_artifacts = require('../../../build/contracts/Carpool.json');
-var Carpool = contract(carpool_artifacts);
-Carpool.setProvider(web3.currentProvider);
-
-var accounts;
-var carpool;
-const accountIdx = 6;
-series([
-    // -$- Get accounts -$-
-    (cb) => {
-        web3.eth.getAccounts(function(err, accs) {
-            if (err != null) {
-                console.log("There was an error fetching your accounts.");
-                cb(err);}
-            if (accs.length == 0) {
-                cb("Couldn't get any accounts! Make sure your Ethereum \
-                    client is configured correctly.");
-            }
-
-            accounts = accs;
-            console.log("Using account %d: %s", accountIdx, accounts[accountIdx]); 
-            cb(); 
-        });
-    },
-    // -$- IPFS node goes online -$-
-    (cb) => {
-        node.version((err, version) => {
-            if (err) { return cb(err) }
-            console.log('\nIPFS Version:', version.version);
-            cb();
-        })
-    },
-    (cb) => node.init({ emptyRepo: true, bits: 2048 }, cb),
-    (cb) => node.start(cb),
-    (cb) => {
-        if (node.isOnline()) {
-            console.log('IPFS node is now ready and online')
-        }
-        cb();
-    },
- 
+series([     
     // -$- Deploy carpool contract -$-
     (cb) => {
         Carpool.deployed().then(function(instance) {
@@ -71,15 +22,15 @@ series([
     // -$- Register driver -$-
     (cb) => {
         carpool.registerDriver.call('lex0', 'L8327788', 
-                {from: accounts[accountIdx]}).then(function(result) {
+                {from: car.account}).then(function(result) {
             var error = result.toNumber();
             if (!error) {
-                carpool.registerDriver('lex0', 'L8327788', {from: accounts[accountIdx], 
+                carpool.registerDriver('lex0', 'L8327788', {from: car.account, 
                     gas: 154000}).then(function(result) {
                     var log = utils.retrieveEventLog(result.logs, 'DriverRegistered');
                     if (log) {
                         console.log('\nDriver registered with account %s', log.args.account)
-                            console.log('\tname: %s', web3.toAscii(log.args.name));
+                            console.log('\tname: %s', car.web3.toAscii(log.args.name));
                     }
                     cb();
                 });
@@ -90,13 +41,20 @@ series([
 
         });
     },
+    // -$- Setup GPS listener -$-
     (cb) => {
-        node.stop(cb);
-    }
+        car.listenGPSData((data) => {
+            if (car.gpsFixed) console.log(data);
+        });
+        cb();
+    },
+    // -$- Emulate running for x seconds -$-
+    (cb) => setTimeout(cb, 3000),
+
 ], (err) => {
     if (err) {
         return console.log('\n', err);
     }
-    console.log('\nFinished!');
+    car.stopService();
 });
 
