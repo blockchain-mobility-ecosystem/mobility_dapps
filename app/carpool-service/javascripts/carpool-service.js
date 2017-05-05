@@ -5,7 +5,7 @@ const CarService = require('./car-service');
 const utils = require('../../common/javascripts/app-utils');
 
 var car = new CarService();
-car.initWeb3();
+car.initWeb3(2);
 
 const carpoolArtifacts = require('../../../build/contracts/Carpool.json');
 var Carpool = contract(carpoolArtifacts);
@@ -28,6 +28,7 @@ series([
                 carpool.registerDriver('lex0', 'L8327788', {from: car.account, 
                     gas: 154000}).then(function(result) {
                     var log = utils.retrieveEventLog(result.logs, 'DriverRegistered');
+                    car.keyfob.unlock();
                     if (log) {
                         console.log('\nDriver registered with account %s', log.args.account)
                             console.log('\tname: %s', car.web3.toAscii(log.args.name));
