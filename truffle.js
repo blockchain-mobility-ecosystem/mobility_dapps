@@ -1,3 +1,11 @@
+var HDWalletProvider = require("truffle-hdwallet-provider");
+var walletsInfo = require("./hdwallets.json");
+
+var mnemonic = walletsInfo['truffle']['mnemonic'];
+var provider = new HDWalletProvider(mnemonic, "https://ropsten.infura.io/");
+//console.log(provider.getAddress());
+//console.log(provider.wallet.getPrivateKey().toString('hex'));
+
 module.exports = {
     networks: {
         development: {
@@ -7,8 +15,7 @@ module.exports = {
             network_id: "*" // Match any network id
         },
         ropsten: {
-            host: "localhost",
-            port: 30303 ,
+            provider: provider,
             network_id: 3
         }
     }

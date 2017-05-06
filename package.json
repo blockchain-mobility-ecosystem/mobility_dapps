@@ -43,6 +43,7 @@
     "json-loader": "^0.5.4",
     "path": "^0.12.7",
     "style-loader": "^0.13.1",
+    "truffle-hdwallet-provider": "0.0.3",
     "webpack": "^2.2.1",
     "webpack-dev-server": "^2.3.0"
   },
@@ -50,6 +51,7 @@
     "async-series": "0.0.1",
     "geolib": "^2.0.22",
     "gps": "^0.2.0",
+    "multiaddr": "^2.3.0",
     "rpio": "^0.9.16",
     "serialport": "^4.0.7",
     "sleep": "^5.1.1",

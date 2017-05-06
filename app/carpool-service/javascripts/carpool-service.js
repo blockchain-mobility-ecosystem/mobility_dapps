@@ -4,22 +4,51 @@ const contract = require('truffle-contract');
 const CarService = require('./car-service');
 const utils = require('../../common/javascripts/app-utils');
 
+const walletsPath = '../../../hdwallets.json';  // To derive car ropsten account.
 var car = new CarService();
-car.initWeb3(2);
 
 const carpoolArtifacts = require('../../../build/contracts/Carpool.json');
 var Carpool = contract(carpoolArtifacts);
 Carpool.setProvider(car.web3.currentProvider);
 
+const receivedCmd = (msg) => {
+    console.log('Received [%s] command from [%s]', msg.data.toString(), msg.from);
+};
+
 series([     
-    // -$- Deploy carpool contract -$-
+    (cb) => car.initWeb3(0, cb),
+    //*
+    (cb) => car.initIPFS(cb),
+    //(cb) => setTimeout(cb, 60000),
     (cb) => {
-        Carpool.deployed().then(function(instance) {
-            carpool = instance;
+        car.listenCarCommands(receivedCmd);
+        cb();
+    },
+    // Write something
+    (cb) =>  {
+        const obj = {
+            Data: new Buffer('Some data'),
+            Links: []
+        };
+
+        car.ipfsNode.object.put(obj, (err, node) => {
+            if (err) {
+                cb(err)
+            }
+            console.log(node.toJSON().multihash);
+            // Logs:
+            // QmPb5f92FxKPYdT3QNBd1GKiL4tZUXUrzF4Hkpdr3Gf1gK
             cb();
         });
     },
-    // -$- Register driver -$-
+    //*/
+    (cb) => {
+        Carpool.deployed().then(function(instance) {
+            carpool = instance;
+            console.log('Contract deployed at ' + carpool.address);
+            cb();
+        });
+    },
     (cb) => {
         carpool.registerDriver.call('lex0', 'L8327788', 
                 {from: car.account}).then(function(result) {
@@ -43,14 +72,16 @@ series([
         });
     },
     // -$- Setup GPS listener -$-
+    /*
     (cb) => {
         car.listenGPSData((data) => {
             if (car.gpsFixed) console.log(data);
         });
         cb();
     },
+    */
     // -$- Emulate running for x seconds -$-
-    (cb) => setTimeout(cb, 3000),
+    (cb) => setTimeout(cb, 300000),
 
 ], (err) => {
     if (err) {
