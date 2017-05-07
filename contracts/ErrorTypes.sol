@@ -1,6 +1,6 @@
 pragma solidity ^0.4.8;
 
-contract CarpoolTypes {
+contract ErrorTypes {
     //typedef vin_t bytes17; 
     //typedef license_t bytes16;
     //typedef carid_t uint32;

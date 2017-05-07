@@ -6,7 +6,6 @@ const multiaddr = require('multiaddr')
 const os = require('os')
 const path = require('path')
 const SerialPort = require('serialport');                                         
-const HDWalletProvider = require("truffle-hdwallet-provider");
 const Web3 = require('web3');
 
 const keyfob = require('./keyfob');
@@ -15,11 +14,12 @@ const CAR_CMD_TOPIC = 'car-command-to-me';
 
 /**
  * The in-car service class.
- * @param {String} walletProvider To select account provider. If 'web3', use
- *   default web3 provider. Otherwise, use HD wallet info in the provided file.
+ * @param {boolean} enableIPFS To start IPFS or not.
+ * @param {function} callback Function to call when IPFS started.
+ *
  * @constructor
  */
-function CarService(walletProvider) {
+function CarService(enableIPFS, callback) {
     var self = this;
     self.ipfsNode = new IPFS({
         repo: path.join(os.tmpdir() + '/' + new Date().toString()),
@@ -31,21 +31,7 @@ function CarService(walletProvider) {
         },
     });
     self.ipfsRunning = false;
-    
-    walletProvider = typeof walletProvider !== 'undefined' ? walletProvider : 'web3';
-    var web3 = new Web3();
-    if (walletProvider !== 'web3') { 
-        var walletsInfo = require(walletProvider);
-        var carWallet = walletsInfo['car']; 
-        var hdwProvider = new HDWalletProvider(carWallet['mnemonic'], "https://ropsten.infura.io/",
-                carWallet['index']);
-        web3.setProvider(hdwProvider);
-    } else {
-        var web3Provider = new web3.providers.HttpProvider('http://localhost:8545');
-        web3.setProvider(web3Provider);
-    }
-    self.web3 = web3;
-
+   
     self.gps = new GPS;                                                              
     self.gpsFixed = false;
     self.gpsRunning = false;
@@ -56,14 +42,17 @@ function CarService(walletProvider) {
 
     self.keyfob = keyfob; 
 
+    if (enableIPFS)  self._initIPFS(callback);
+    else callback();
 }
 
 /**
  * Initialize and start IPFS node.
  */
-CarService.prototype.initIPFS = function(callback) {
+CarService.prototype._initIPFS = function(callback) {
     var self = this;
     series([
+        /*
         (cb) => {
             self.ipfsNode.version((err, version) => {
                 if (err) { return cb(err) }
@@ -71,27 +60,23 @@ CarService.prototype.initIPFS = function(callback) {
                 cb();
             })
         },
+        */
         (cb) => self.ipfsNode.init({ emptyRepo: true, bits: 2048,}, cb),
         (cb) => self.ipfsNode.start(cb),
         (cb) => {
-            if (self.ipfsNode.isOnline()) {
-                console.log('IPFS node is now ready and online')
-            }
+            if (!self.ipfsNode.isOnline()) return cb('error bringing ipfs online');
             self.ipfsRunning = true;
-            cb();
-        },
-        (cb) => {
             self.ipfsNode.id((err, identity) => {
-                if (err) { return cb(err) }
-                console.log(identity.id);
+                if (err) return cb(err);
+                console.log('IPFS node id ' + identity.id);
+                self.ipfsNodeId = identity.id;
                 cb();
             });
         },
         
     ], (err) => {
         if (err) {
-            callback(err);
-            return console.log('\n', err);
+            return callback(err);
         }
         callback();
     });
@@ -111,28 +96,7 @@ CarService.prototype.listenCarCommands = function(dataCallback) {
     console.log('\nNow listening car commands.');
 }
 
-/**
- * Initialize Web3 client.
- * @param {function} cb Callback to signal the completion or error.
- */
-CarService.prototype.initWeb3 = function(accountIdx, cb) {
-    var self = this;
-    accountIdx = typeof accountIdx !== 'undefined' ? accountIdx : 0;
-    self.web3.eth.getAccounts(function(err, accs) {
-        if (err != null) {
-            console.log("There was an error fetching your accounts.");
-            cb(err);}
-        if (accs.length == 0) {
-            cb("Couldn't get any accounts! Make sure your Ethereum \
-                    client is configured correctly.");
-        }
 
-        self.accounts = accs;
-        self.account = self.accounts[accountIdx];
-        console.log("Using account %d: %s", accountIdx, self.account); 
-        cb(); 
-    });
-}
 
 /**
  * Start listening GPS data.
