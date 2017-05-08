@@ -37,7 +37,7 @@ series([
     },
     (cb) => car = new CarService(true, cb),
     //*
-    //(cb) => setTimeout(cb, 60000),
+    (cb) => setTimeout(cb, 60000),
     (cb) => {
         car.listenCarCommands((msg) => {
             console.log('Received [%s] command from [%s]', msg.data.toString(), msg.from);
@@ -101,7 +101,7 @@ series([
     },
     //*/
     // -$- Emulate running for x ms -$-
-    (cb) => setTimeout(cb, 1000),
+    (cb) => setTimeout(cb, 300000),
 
 ], (err) => {
     if (err) {

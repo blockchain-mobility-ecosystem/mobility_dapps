@@ -1,11 +1,10 @@
-# Decentralized Carpool Framework
+# Decentralized Mobility Application Framework
 
-A decentralized carpool framework on the ethereum blockchain.
+A decentralized mobility application framework on the ethereum blockchain.
 
-The framework consists of three components (Dapps)
-- Car service app under app->carpool-service
-- User app under app->carpool-user
-- Driver app under app->carpool-driver
+The framework consists of two use cases / Dapps
+- Carpool
+- Car Sharing (which we're focusing on to deliver the dapp open framework for auto industries)
 
 # Install
 
@@ -37,10 +36,6 @@ Copy the generated "wrtc.node" to the following node_modules folder
 "node_modules/wrtc/build/wrtc/v0.0.61/Release/node-v48-linux-arm/wrtc.node"
 
 `npm install ipfs` again.
-
-## User & Driver Dapp Prerequisites
-
-**TO be added**
 
 # Usage
 
@@ -78,8 +73,8 @@ truffle test test/carpool.js
 5. Try in-car dapp
 
 ```Bash
-cd app/car-service
-node car-service.js
+cd app/carsharing/js
+node carsharing-service.js
 ```
 # TODO
 - [ ] Demo GPS data sharing.

@@ -114,7 +114,7 @@ CarService.prototype.listenCarCommands = function(dataCallback) {
     if (!self.ipfsRunning) {
         return console.log('Error: IPFS node is not online!');
     }
-    self.ipfsNode.pubsub.subscribe(CAR_CMD_TOPIC, dataCallback);
+    self.ipfsNode.pubsub.subscribe(CAR_CMD_TOPIC, {discover: true}, dataCallback);
     console.log('\nNow listening car commands.');
 }
 
