@@ -12,6 +12,8 @@ const keyfob = require('./keyfob');
 
 const CAR_CMD_TOPIC = 'car-command-to-me';
 
+var bootstrapWsAddr = '/dns4/ams-1.bootstrap.libp2p.io/tcp/443/wss/ipfs/QmSoLer265NRgSp2LA3dPaeykiS1J6DifTC88f5uVQKNAd';
+
 /**
  * The in-car service class.
  * @param {boolean} enableIPFS To start IPFS or not.
@@ -22,7 +24,7 @@ const CAR_CMD_TOPIC = 'car-command-to-me';
 function CarService(enableIPFS, callback) {
     var self = this;
     self.ipfsNode = new IPFS({
-        repo: path.join(os.tmpdir() + '/' + new Date().toString()),
+        //repo: path.join(os.tmpdir() + '/' + new Date().toString()),
         init: false,
         start: false,
         EXPERIMENTAL: {
@@ -35,7 +37,7 @@ function CarService(enableIPFS, callback) {
     self.gps = new GPS;                                                              
     self.gpsFixed = false;
     self.gpsRunning = false;
-    self.port = new SerialPort('/dev/ttyS0', {                                       
+    self.gpsport = new SerialPort('/dev/ttyS0', {                                       
         baudrate: 9600,                                                             
         parser: SerialPort.parsers.readline('\r\n')                                 
     });
@@ -61,7 +63,13 @@ CarService.prototype._initIPFS = function(callback) {
             })
         },
         */
-        (cb) => self.ipfsNode.init({ emptyRepo: true, bits: 2048,}, cb),
+        (cb) => {
+            self.ipfsNode._repo.exists((err, exists) => {
+                if (err) return cb(err);
+                if (exists) self.ipfsNode.on('ready', cb);
+                else self.ipfsNode.init({ emptyRepo: true, bits: 2048}, cb);
+            });
+        },
         (cb) => self.ipfsNode.start(cb),
         (cb) => {
             if (!self.ipfsNode.isOnline()) return cb('error bringing ipfs online');
@@ -73,6 +81,20 @@ CarService.prototype._initIPFS = function(callback) {
                 cb();
             });
         },
+        // -$- Connect to bootstrap peers -$-
+        (cb) => {
+            self.ipfsNode.swarm.connect(bootstrapWsAddr, function (error) { 
+                if (error) cb(error);
+                cb();
+            });
+        },
+        (cb) => {
+            self.ipfsNode.swarm.peers((err, peerInfos) => {
+                if (err) cb(err);
+                //console.log(peerInfos);
+                cb();
+            });
+        }
         
     ], (err) => {
         if (err) {
@@ -104,7 +126,7 @@ CarService.prototype.listenCarCommands = function(dataCallback) {
  */
 CarService.prototype.listenGPSData = function(dataCallback) {
     var self = this;
-    self.port.on('data', function(data) {                                                
+    self.gpsport.on('data', function(data) {                                                
         self.gps.update(data);                                                           
     });
     self.gps.on('GGA', function(data) {                                                  
@@ -146,6 +168,7 @@ CarService.prototype.stopService = function() {
         (cb) => {
             if (self.gpsListening) {
                 self.gps.off('GGA');
+                self.gpsport.off('data');
             } 
             cb();
         }

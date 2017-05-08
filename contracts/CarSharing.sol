@@ -4,81 +4,68 @@ import "./MobilityRegistry.sol";
 
 contract CarSharing is MobilityRegistry {
     struct Reservation {
-        uint num;
-        address customer;
-        uint32 carId;
+        address userCID;
+        address carCID;
         uint start;
         uint end;
         bool exists;
     }
+
     mapping (uint => Reservation) reservations;
-    event CarReserved(uint32 carId, address customer);
-       
-    /// Reserve a car with number of seats.
-    function reserve(uint32 carId, 
-        uint8 numOfSeats,
+    uint curRsvtNum;
+
+    event CarReserved(address userCID, address carCID);
+
+    function CarSharing() { curRsvtNum = 0; }
+    
+    /// Reserve a car
+    function reserve(address carCID, 
         uint start,
         uint end
     ) returns (uint error) {
-        Account user = users[msg.sender];
+        UserAccount user = users[msg.sender];
         if (!user.exists) return ACCOUNT_NOT_EXIST;
 
-        Car car = idToCar[carId];
+        Car car = cars[carCID];
         if (!car.exists) return CAR_NOT_REGISTERED;
 
         if (car.status == CarStatus.UNAVAILABLE) return CAR_NOT_AVAILABLE;
 
         Reservation rsvt = reservations[curRsvtNum];
-        rsvt.num = curRsvtNum;
-        curRsvtNum += 1;
-        rsvt.customer = user.addr;
-        rsvt.carId = carId;
+        rsvt.userCID= msg.sender;
+        rsvt.carCID = carCID;
         rsvt.start = start;
         rsvt.end = end;
         rsvt.exists = true;
-        reservations[rsvt.num] = rsvt;
-        car.rsvt = rsvt.num;
+        reservations[curRsvtNum] = rsvt;
+        car.currentRsvt = curRsvtNum;
+        curRsvtNum += 1;
 
-        CarReserved(carId, user.addr);
+        CarReserved(msg.sender, carCID);
         return SUCCESS;
     }
+       
+    /// Car node to check user's pemission to access (lock/unlock) the car.
+    function checkPermission2AccessCar(address userCID) 
+            returns (uint error, uint permission) 
+    {
+        Car car = cars[msg.sender];
+        if (!car.exists) return (CAR_NOT_REGISTERED, 0);
+
+        UserAccount user = users[msg.sender];
+        if (!user.exists) {
+            return (ACCOUNT_NOT_EXIST, 0);
+        }
+        
+        Reservation rsvt = reservations[car.currentRsvt];
+        if (rsvt.userCID != userCID) {
+            return (SUCCESS, CAR_ACCESS_ALL);
+        } else {
+            return (SUCCESS, CAR_ACCESS_ALL);
+        }
+    }
+
     /// About to check out.
     function checkout() returns (bool) {
     }
-
-    // -$- Events related to car access authoriization -$- 
-    event UnlockAuthorized(uint32 carId, address user);
-    event LockAuthorized(uint32 carId, address user);
-    function requestAuth2Unlock(uint32 carId) returns (uint error) {
-        Account user = users[msg.sender];
-        if (!user.exists) {
-            return ACCOUNT_NOT_EXIST;
-        }
-        
-        Car car = idToCar[carId];
-        Reservation rsvt = reservations[car.rsvt];
-        if (rsvt.customer != user.addr) {
-            return ACCOUNT_NOT_AUTHORIZE_ACCESS_CAR;
-        }
-        // TODO: generate token for car access.
-        UnlockAuthorized(carId, user.addr);
-        return SUCCESS;
-    }
-
-    function requestAuth2Lock(uint32 carId) returns (uint error) {
-        Account user = users[msg.sender];
-        if (!user.exists) {
-            return ACCOUNT_NOT_EXIST;
-        }
-        
-        Car car = idToCar[carId];
-        Reservation rsvt = reservations[car.rsvt];
-        if (rsvt.customer != user.addr) {
-            return ACCOUNT_NOT_AUTHORIZE_ACCESS_CAR;
-        }
-        // TODO: generate token for car access.
-        LockAuthorized(carId, user.addr);
-        return SUCCESS;
-    }
-
 }

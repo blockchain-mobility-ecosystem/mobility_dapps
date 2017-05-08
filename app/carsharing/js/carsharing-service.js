@@ -3,8 +3,8 @@ const contract = require('truffle-contract');
 const HDWalletProvider = require("truffle-hdwallet-provider");
 const Web3 = require('web3');
 
-const CarService = require('./car-service');
-const utils = require('../../common/javascripts/app-utils');
+const CarService = require('../../common/js/car-service');
+const utils = require('../../common/js/app-utils');
 
 const walletsPath = '../../../hdwallets.json';  // To derive car ropsten account.
 var walletsInfo = require(walletsPath);
@@ -15,11 +15,11 @@ var hdwProvider = new HDWalletProvider(walletsInfo['car']['mnemonic'],
 var web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
 const accountIdx = 4;
 
-const carpoolArtifacts = require('../../../build/contracts/Carpool.json');
-var CarpoolContract = contract(carpoolArtifacts);
-CarpoolContract.setProvider(web3.currentProvider);
+const carSharingArtifacts = require('../../../build/contracts/CarSharing.json');
+var CarSharingContract = contract(carSharingArtifacts);
+CarSharingContract.setProvider(web3.currentProvider);
 
-var carpool;
+var carSharing;
 var car;
 var account;
 series([     
@@ -35,9 +35,9 @@ series([
             cb(); 
         });
     },
-    (cb) => car = new CarService(false, cb),
-    /*
-    (cb) => setTimeout(cb, 60000),
+    (cb) => car = new CarService(true, cb),
+    //*
+    //(cb) => setTimeout(cb, 60000),
     (cb) => {
         car.listenCarCommands((msg) => {
             console.log('Received [%s] command from [%s]', msg.data.toString(), msg.from);
@@ -63,23 +63,23 @@ series([
     },
     //*/
     (cb) => {
-        CarpoolContract.deployed().then(function(instance) {
-            carpool = instance;
-            console.log('\nContract deployed at ' + carpool.address);
+        CarSharingContract.deployed().then(function(instance) {
+            carSharing = instance;
+            console.log('\nContract deployed at ' + carSharing.address);
             cb();
         });
     },
     (cb) => {
-        carpool.registerDriver.call('lex0', 'L8327788', 
+        carSharing.registerUser.call('lex0', 'L8327788', 
                 {from: account}).then(function(result) {
             var error = result.toNumber();
             if (!error) {
-                carpool.registerDriver('lex0', 'L8327788', {from: account, 
+                carSharing.registerUser('lex0', 'L8327788', {from: account, 
                     gas: 154000}).then(function(result) {
-                    var log = utils.retrieveEventLog(result.logs, 'DriverRegistered');
+                    var log = utils.retrieveEventLog(result.logs, 'UserRegistered');
                     car.keyfob.unlock();
                     if (log) {
-                        console.log('\nDriver registered with account %s', log.args.account)
+                        console.log('\nUser registered with account %s', log.args.account)
                             console.log('\tname: %s', web3.toAscii(log.args.name));
                     }
                     cb();
@@ -99,9 +99,9 @@ series([
         });
         cb();
     },
-    */
-    // -$- Emulate running for x seconds -$-
-    (cb) => setTimeout(cb, 300000),
+    //*/
+    // -$- Emulate running for x ms -$-
+    (cb) => setTimeout(cb, 1000),
 
 ], (err) => {
     if (err) {

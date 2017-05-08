@@ -6,7 +6,6 @@ contract CarTypes {
     enum CarStatus {AVAILABLE, UNAVAILABLE}
 
     struct Car {
-        uint32 id;
         bytes17 vin;
         address owner;
         uint16 year;
@@ -15,8 +14,14 @@ contract CarTypes {
         Color color;
         Transmission transmission;
         uint8 seats;
-        uint rsvt;
         CarStatus status;
         bool exists;
+        uint currentRsvt;
+
     }
+
+    uint constant CAR_ACCESS_UNLOCK = 1;
+    uint constant CAR_ACCESS_LOCK = 2;
+    uint constant CAR_ACCESS_REMOTE_START = 4;
+    uint constant CAR_ACCESS_ALL = CAR_ACCESS_UNLOCK | CAR_ACCESS_LOCK | CAR_ACCESS_REMOTE_START;
 }
