@@ -22,6 +22,35 @@ CarSharingContract.setProvider(web3.currentProvider);
 var carSharing;
 var car;
 var account;
+
+const carM2MProtocol = 'MQTT';
+
+function ipfsMsgReceiver(msg) {
+    console.log('Received [%s] command from [%s]', msg.data.toString(), msg.from);
+}
+
+function mqttMsgReceiver(topic, msg) {
+    var msg = msg.toString().trim();
+    console.log(msg);
+    msg = JSON.parse(msg);
+    console.log(msg);
+    switch(msg.cmd) {
+        case 'lock':
+            console.log('Locking');
+            break;
+        case 'unlock':
+            console.log('Unlocking');
+            break;
+        default:
+            console.log('Unsupported car command %s.', cmd);
+            
+    }
+}
+
+const carTopicReceiver = carM2MProtocol === 'MQTT' ? mqttMsgReceiver :
+    carM2MProtocol === 'IPFS' ? ipfsMsgReceiver : null;
+if (!carTopicReceiver) throw new Error('M2M not supported!')
+
 series([     
     (cb) => {
         web3.eth.getAccounts(function(err, accs) {
@@ -35,13 +64,11 @@ series([
             cb(); 
         });
     },
-    (cb) => car = new CarService(true, cb),
+    (cb) => car = new CarService(true, carM2MProtocol, cb),
     //*
-    (cb) => setTimeout(cb, 60000),
+    //(cb) => setTimeout(cb, 60000),
     (cb) => {
-        car.listenCarCommands((msg) => {
-            console.log('Received [%s] command from [%s]', msg.data.toString(), msg.from);
-        });
+        car.listenCarTopic(carTopicReceiver);
         cb();
     },
     // Write something
