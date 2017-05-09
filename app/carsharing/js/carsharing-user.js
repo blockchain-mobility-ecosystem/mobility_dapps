@@ -1,5 +1,4 @@
 const series = require('async/series');
-const ethjsUtil = require('ethereumjs-util');
 const mqtt = require('mqtt');
 const HDWalletProvider = require("truffle-hdwallet-provider");
 const Web3 = require('web3');
@@ -41,7 +40,9 @@ series([
             date: new Date(),
             cmd: 'unlock'
         };
-        var signedMsg = web3.eth.sign(account, web3.sha3(JSON.stringify(msg)));
+        var msgHash = web3.sha3(JSON.stringify(msg));
+        console.log(msgHash);
+        var signedMsg = web3.eth.sign(account, msgHash);
         msg.signature = signedMsg;
         console.log(JSON.stringify(msg));
 

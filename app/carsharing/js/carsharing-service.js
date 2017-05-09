@@ -1,4 +1,5 @@
 const series = require('async/series');
+const ethjsUtil = require('ethereumjs-util');
 const contract = require('truffle-contract');
 const HDWalletProvider = require("truffle-hdwallet-provider");
 const Web3 = require('web3');
@@ -24,6 +25,7 @@ var car;
 var account;
 
 const carM2MProtocol = 'MQTT';
+const CAR_MSG_TTV = 3000;   // Message time-to-valid in milliseconds
 
 function ipfsMsgReceiver(msg) {
     console.log('Received [%s] command from [%s]', msg.data.toString(), msg.from);
@@ -31,20 +33,58 @@ function ipfsMsgReceiver(msg) {
 
 function mqttMsgReceiver(topic, msg) {
     var msg = msg.toString().trim();
-    console.log(msg);
     msg = JSON.parse(msg);
-    console.log(msg);
-    switch(msg.cmd) {
-        case 'lock':
-            console.log('Locking');
-            break;
-        case 'unlock':
-            console.log('Unlocking');
-            break;
-        default:
-            console.log('Unsupported car command %s.', cmd);
-            
+    
+    console.log('Received new message:\n', msg);
+    // Check signature
+    console.log('\n>> Checking signature');
+    var sig = msg.signature;
+    delete msg['signature'];
+    var sigParams = ethjsUtil.fromRpcSig(sig); 
+    var sigHash = ethjsUtil.sha3(JSON.stringify(msg));
+    var pubkey = ethjsUtil.ecrecover(sigHash, sigParams.v, sigParams.r, sigParams.s);
+    var addr = ethjsUtil.pubToAddress(pubkey);
+    addr = ethjsUtil.addHexPrefix(addr.toString('hex'));
+    if (addr === msg.address) {
+        console.log('\tsignature passed.');
+    } else {
+        return console.log('Signature is bad, not able to process message.');
     }
+    // Check date
+    console.log('\n>> Checking signing date');
+    var elapsed = new Date() - new Date(msg.date);  // in milliseconds
+    if (elapsed <= CAR_MSG_TTV) {
+        console.log('\tdate passed.');
+    } else {
+        return console.log('Message exceeds time limit to be valid.');
+    }
+    // Check permission
+    console.log('\n>> Checking user permission');
+    carSharing.checkPermission2AccessCar.call(addr, {from: account}).then((result) => {
+        var err = result[0].toNumber();
+        var permission = result[1].toNumber();
+        if (err !== 0) {
+            console.log('Error checking permission, errno: ', err);
+        } else {
+            console.log('User permission code: ', permission);
+            // TODO unlock/lock per permission
+            switch(msg.cmd) {
+                case 'lock':
+                    console.log('Locking');
+                    car.keyfob.lock();
+                    break;
+                case 'unlock':
+                    console.log('Unlocking');
+                    car.keyfob.unlock();
+                    break;
+                default:
+                    console.log('Unsupported car command %s.', msg.cmd);
+
+            }
+        }
+    });
+
+    
 }
 
 const carTopicReceiver = carM2MProtocol === 'MQTT' ? mqttMsgReceiver :
@@ -104,7 +144,7 @@ series([
                 carSharing.registerUser('lex0', 'L8327788', {from: account, 
                     gas: 154000}).then(function(result) {
                     var log = utils.retrieveEventLog(result.logs, 'UserRegistered');
-                    car.keyfob.unlock();
+                    
                     if (log) {
                         console.log('\nUser registered with account %s', log.args.account)
                             console.log('\tname: %s', web3.toAscii(log.args.name));
