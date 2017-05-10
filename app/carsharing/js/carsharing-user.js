@@ -50,5 +50,7 @@ series([
         mqttClient.end();
         cb();
     }
-]);
+], (err) => {
+    if (err) return console.log(err);
+});
 

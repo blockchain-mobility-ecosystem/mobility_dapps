@@ -19,11 +19,10 @@ var bootstrapWsAddr = '/dns4/ams-1.bootstrap.libp2p.io/tcp/443/wss/ipfs/QmSoLer2
  * The in-car service class.
  * @param {boolean} enableIPFS To start IPFS or not.
  * @param {String} m2mProtocol "MQTT" | "IPFS"
- * @param {function} callback Function to call when IPFS started.
  *
  * @constructor
  */
-function CarService(enableIPFS, m2mProtocol, callback) {
+function CarService(enableIPFS, m2mProtocol) {
     var self = this;
     self.ipfsNode = new IPFS({
         //repo: path.join(os.tmpdir() + '/' + new Date().toString()),
@@ -51,15 +50,12 @@ function CarService(enableIPFS, m2mProtocol, callback) {
         case 'IPFS': self.listenCarTopic = self._subscribe2IPFSCarTopic; break;
         default: throw new Error('M2M protocol %s not supported!', m2mProtocol);
     }
-
-    if (enableIPFS)  self._initIPFS(callback);
-    else callback();
 }
 
 /**
  * Initialize and start IPFS node.
  */
-CarService.prototype._initIPFS = function(callback) {
+CarService.prototype.initIPFS = function(callback) {
     var self = this;
     series([
         /*
@@ -115,23 +111,26 @@ CarService.prototype._initIPFS = function(callback) {
 
 /**
  * Listen to the car command topic from IPFS P2P pubsub network.
- * @param {function} dataCallback Callback function to process topic data.
+ * @param {function} msgReceiver Callback function to process topic data.
+ * @param {function} cb Callback to indicate subcribed status.
  */
-CarService.prototype._subscribe2IPFSCarTopic = function(dataCallback) {
+CarService.prototype._subscribe2IPFSCarTopic = function(topic, msgReceiver, cb) {
     var self = this;
     if (!self.ipfsRunning) {
         return console.log('Error: IPFS node is not online!');
     }
-    self.ipfsNode.pubsub.subscribe(CAR_CMD_TOPIC, {discover: true}, dataCallback);
-    console.log('Subscribed to %s in IPFS.', CAR_CMD_TOPIC);
+    self.ipfsNode.pubsub.subscribe(topic, {discover: true}, msgReceiver);
+    console.log('\nSubscribed to %s in IPFS.', topic);
+    cb();
 }
 
-CarService.prototype._subscribe2MQTTCarTopic = function(msgReceiver) {
+CarService.prototype._subscribe2MQTTCarTopic = function(topic, msgReceiver, cb) {
     var self = this;
     client = mqtt.connect('tcp://35.166.170.137:1883');
     client.on('connect', () => {
-        client.subscribe(CAR_CMD_TOPIC);
-        console.log('Subscribed to %s from MQTT.', CAR_CMD_TOPIC);
+        client.subscribe(topic);
+        console.log('\nSubscribed to %s from MQTT.', topic);
+        cb();
     });
     client.on('message', msgReceiver);
 

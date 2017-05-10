@@ -14,7 +14,7 @@ var hdwProvider = new HDWalletProvider(walletsInfo['car']['mnemonic'],
 
 //var web3 = new Web3(hdwProvider);
 var web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
-const accountIdx = 4;
+const accountIdx = 0;
 
 const carSharingArtifacts = require('../../../build/contracts/CarSharing.json');
 var CarSharingContract = contract(carSharingArtifacts);
@@ -108,7 +108,7 @@ series([
     //*
     //(cb) => setTimeout(cb, 60000),
     (cb) => {
-        car.listenCarTopic(carTopicReceiver);
+        car.listenCarTopic('Oaken4Car', carTopicReceiver);
         cb();
     },
     // Write something
