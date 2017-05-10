@@ -10,6 +10,30 @@ contract CarSharing is MobilityRegistry {
         uint end;
         bool exists;
     }
+    
+    function retrieveCarInfo(address VCID) constant returns (
+        bytes17 vin, 
+        uint16 year, 
+        bytes32 make, 
+        bytes32 model, 
+        Color color, 
+        Transmission transmission, 
+        uint8 seats, 
+        CarStatus status, 
+        bool exists, 
+        uint currentRsvt) {
+        Car RequestedCar = cars[VCID];
+        vin = RequestedCar.vin;
+        year = RequestedCar.year;
+        make = RequestedCar.make;
+        model = RequestedCar.model;
+        color = RequestedCar.color;
+        transmission = RequestedCar.transmission;
+        seats = RequestedCar.seats;
+        status = RequestedCar.status;
+        exists = RequestedCar.exists;
+        currentRsvt = RequestedCar.currentRsvt;
+    }
 
     mapping (uint => Reservation) reservations;
     uint curRsvtNum;
