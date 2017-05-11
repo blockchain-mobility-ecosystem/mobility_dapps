@@ -9,20 +9,14 @@ const path = require('path')
 const SerialPort = require('serialport');                                         
 const Web3 = require('web3');
 
+const appcommon = require('./app-common');
 const keyfob = require('./keyfob');
-
-const CAR_CMD_TOPIC = 'Oaken4Car';
-
-var bootstrapWsAddr = '/dns4/ams-1.bootstrap.libp2p.io/tcp/443/wss/ipfs/QmSoLer265NRgSp2LA3dPaeykiS1J6DifTC88f5uVQKNAd';
 
 /**
  * The in-car service class.
- * @param {boolean} enableIPFS To start IPFS or not.
- * @param {String} m2mProtocol "MQTT" | "IPFS"
- *
  * @constructor
  */
-function CarService(enableIPFS, m2mProtocol) {
+function CarService() {
     var self = this;
     self.ipfsNode = new IPFS({
         //repo: path.join(os.tmpdir() + '/' + new Date().toString()),
@@ -43,19 +37,13 @@ function CarService(enableIPFS, m2mProtocol) {
         parser: SerialPort.parsers.readline('\r\n')                                 
     });
 
-    self.keyfob = keyfob; 
-
-    switch (m2mProtocol) {
-        case 'MQTT': self.listenCarTopic = self._subscribe2MQTTCarTopic; break;
-        case 'IPFS': self.listenCarTopic = self._subscribe2IPFSCarTopic; break;
-        default: throw new Error('M2M protocol %s not supported!', m2mProtocol);
-    }
+    self._keyfob = keyfob; 
 }
 
 /**
  * Initialize and start IPFS node.
  */
-CarService.prototype.initIPFS = function(callback) {
+CarService.prototype.startIpfs = function(callback) {
     var self = this;
     series([
         /*
@@ -87,7 +75,8 @@ CarService.prototype.initIPFS = function(callback) {
         },
         // -$- Connect to bootstrap peers -$-
         (cb) => {
-            self.ipfsNode.swarm.connect(bootstrapWsAddr, function (error) { 
+            self.ipfsNode.swarm.connect(appcommon.Configs.IPFS_Bootstrap_Peers[0], 
+                    function (error) { 
                 if (error) cb(error);
                 cb();
             });
@@ -126,7 +115,7 @@ CarService.prototype._subscribe2IPFSCarTopic = function(topic, msgReceiver, cb) 
 
 CarService.prototype._subscribe2MQTTCarTopic = function(topic, msgReceiver, cb) {
     var self = this;
-    client = mqtt.connect('tcp://35.166.170.137:1883');
+    client = mqtt.connect(appcommon.Configs.MQTT_Broker_URL);
     client.on('connect', () => {
         client.subscribe(topic);
         console.log('\nSubscribed to %s from MQTT.', topic);
@@ -136,7 +125,19 @@ CarService.prototype._subscribe2MQTTCarTopic = function(topic, msgReceiver, cb) 
 
 }
 
-
+CarService.prototype.listenCarTopic = function(M2MProtocol, topic, msgReceiver, cb) {
+    var self = this;
+    switch (M2MProtocol) {
+        case 'MQTT': 
+            self._subscribe2MQTTCarTopic(topic, msgReceiver, cb); 
+            break;
+        case 'IPFS': 
+            self._subscribe2IPFSCarTopic(topic, msgReceiver, cb); 
+            break;
+        default: 
+            throw new Error('M2M protocol %s not supported!', m2mProtocol);
+    }
+}
 
 /**
  * Start listening GPS data.
@@ -171,6 +172,25 @@ CarService.prototype.listenGPSData = function(dataCallback) {
 }
 
 /**
+ * Execute car command.
+ */
+CarService.prototype.execCmd = function (command) {
+    var self = this;
+    switch(command) {
+        case 'lock':
+            console.log('Locking');
+            self._keyfob.lock();
+            break;
+        case 'unlock':
+            console.log('Unlocking');
+            self._keyfob.unlock();
+            break;
+        default:
+            console.log('Unsupported car command %s.', msg.cmd);
+    }
+}
+
+/**
  * Stop car service.
  */
 CarService.prototype.stopService = function() {
@@ -197,3 +217,4 @@ CarService.prototype.stopService = function() {
 }
 
 module.exports = CarService;
+
