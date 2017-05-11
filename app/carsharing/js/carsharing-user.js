@@ -11,7 +11,7 @@ CarSharingUser.prototype.startup = function(chainRPCName, callback) {
     var self = this;
     series([     
         (cb) => {
-            utils.bootstrapWeb3Account(chainRPCName, 'user', appcommon.hdconfig, false, 
+            utils.bootstrapWeb3Account(chainRPCName, 'user', appcommon.hdconfig, 
                     (web3, account) => {
                 self.web3 = web3;
                 self._account = account;
@@ -50,13 +50,12 @@ CarSharingUser.prototype.register = function (name, license, callback) {
                 var log = utils.retrieveEventLog(result.logs, 'UserRegistered');
                 
                 if (log) {
-                    console.log('\nUser registered with account %s', log.args.account)
-                        console.log('\tname: %s', self.web3.toAscii(log.args.name));
-                    if(callback) callback();
-                }
+                    console.log('\nUser registered with account %s', log.args.account);
+                    console.log('\tname: %s', self.web3.toAscii(log.args.name));
+                    if(callback) callback();}
             });
         } else {
-            console.log('\nError registering user, code: %d', error);
+            callback('\nError registering user, code: ' + error);
         }
 
     });
@@ -70,7 +69,6 @@ CarSharingUser.prototype.sendSignedCarCommand = function (cmd) {
         cmd: cmd
     };
     var msgHash = self.web3.sha3(JSON.stringify(msg));
-    console.log(msgHash);
     var signedMsg = self.web3.eth.sign(self._account, msgHash);
     msg.signature = signedMsg;
     //console.log(JSON.stringify(msg));
@@ -84,7 +82,8 @@ user.startup('testrpc', () => {
     user.register('lex1', 'L88888888', afterRegistered);
 });
 
-function afterRegistered() {
+function afterRegistered(err) {
+    if (err) return console.log(err);
     user.sendSignedCarCommand('unlock');
 }
 

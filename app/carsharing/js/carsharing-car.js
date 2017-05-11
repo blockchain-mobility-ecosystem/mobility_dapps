@@ -25,7 +25,8 @@ CarSharing.prototype.bootup = function(rpcName, callback) {
     var self = this;
     series([     
         (cb) => {
-            utils.bootstrapWeb3Account(rpcName, 'car', common.hdconfig, false, (web3, account) => {
+            utils.bootstrapWeb3Account(rpcName, 'car', common.hdconfig, 
+                    (web3, account) => {
                 self.web3 = web3;
                 self._account = account;
                 cb();
@@ -88,44 +89,22 @@ CarSharing.prototype.shutdown = function () {
 CarSharing.prototype.processCarCommand = function (msg) {
     var self = this;
     var msg = msg.toString().trim();
-    msg = JSON.parse(msg);
-    console.log('Received new message:\n', msg);
-
-    // Check signature
-    console.log('\n>> Checking signature');
-    var sig = msg.signature;
-    delete msg['signature'];
-    var sigParams = ethjsUtil.fromRpcSig(sig); 
-    var sigHash = ethjsUtil.sha3(JSON.stringify(msg));
-    var pubkey = ethjsUtil.ecrecover(sigHash, sigParams.v, sigParams.r, sigParams.s);
-    var addr = ethjsUtil.pubToAddress(pubkey);
-    addr = ethjsUtil.addHexPrefix(addr.toString('hex'));
-    if (addr === msg.address) {
-        console.log('\tsignature passed.');
-    } else {
-        return console.log('Signature is bad, not able to process message.');
-    }
-
-    // Check date
-    console.log('\n>> Checking signing date');
-    var elapsed = new Date() - new Date(msg.date);  // in milliseconds
-    if (elapsed <= self.CAR_MSG_TTV) {
-        console.log('\tdate passed.');
-    } else {
-        return console.log('Message exceeds time limit to be valid.');
-    }
+    console.log('\nReceived new message: ', msg);
+    var checked = utils.checkOakenSignedMsg(msg, self.CAR_MSG_TTV);
+    if (!checked.pass) return;
 
     // Check permission
     console.log('\n>> Checking user permission');
-    self.carsharingIns.checkPermission2AccessCar.call(addr, {from: self._account})
-            .then((result) => {
+    self.carsharingIns.checkPermission2AccessCar.call(checked.address, 
+            {from: self._account}).then((result) => {
         var err = result[0].toNumber();
         var permission = result[1].toNumber();
+        err = 0;
         if (err !== 0) {
             console.log('Error checking permission, errno: ', err);
         } else {
             console.log('User permission code: ', permission);
-            self.car.execCmd(msg.cmd);
+            self.car.execCmd(checked.cmd);
         }
     });
 }

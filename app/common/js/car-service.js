@@ -178,15 +178,15 @@ CarService.prototype.execCmd = function (command) {
     var self = this;
     switch(command) {
         case 'lock':
-            console.log('Locking');
+            console.log('\nLocking...');
             self._keyfob.lock();
             break;
         case 'unlock':
-            console.log('Unlocking');
+            console.log('\nUnlocking...');
             self._keyfob.unlock();
             break;
         default:
-            console.log('Unsupported car command %s.', msg.cmd);
+            console.log('\nUnsupported car command %s.', msg.cmd);
     }
 }
 

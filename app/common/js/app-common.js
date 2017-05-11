@@ -11,7 +11,8 @@ exports.Configs = {
 }
 
 exports.Artifacts = {
-    CarSharing: require('../../../build/contracts/CarSharing.json')
+    CarSharing: require('../../../build/contracts/CarSharing.json'),
+    MultiOwnership: require('../../../build/contracts/MultiOwnership.json')
 }
 
 
