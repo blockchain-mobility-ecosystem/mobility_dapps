@@ -18,24 +18,13 @@ const keyfob = require('./keyfob');
  */
 function CarService() {
     var self = this;
-    self.ipfsNode = new IPFS({
-        //repo: path.join(os.tmpdir() + '/' + new Date().toString()),
-        init: false,
-        start: false,
-        EXPERIMENTAL: {
-            pubsub: true,
-            //sharding: true
-        },
-    });
+    
     self.ipfsRunning = false;
    
     self.gps = new GPS;                                                              
     self.gpsFixed = false;
     self.gpsRunning = false;
-    self.gpsport = new SerialPort('/dev/ttyS0', {                                       
-        baudrate: 9600,                                                             
-        parser: SerialPort.parsers.readline('\r\n')                                 
-    });
+    
 
     self._keyfob = keyfob; 
 }
@@ -43,18 +32,28 @@ function CarService() {
 /**
  * Initialize and start IPFS node.
  */
-CarService.prototype.startIpfs = function(callback) {
+CarService.prototype.startIpfs = function(repo, callback) {
     var self = this;
     series([
-        /*
         (cb) => {
+            self.ipfsNode = new IPFS({
+                repo: repo, 
+                init: false,
+                start: false,
+                EXPERIMENTAL: {
+                    pubsub: true,
+                    //sharding: true
+                },
+            });
+            cb();
+        /*
             self.ipfsNode.version((err, version) => {
                 if (err) { return cb(err) }
                 console.log('\nIPFS Version:', version.version);
                 cb();
             })
-        },
         */
+        },
         (cb) => {
             self.ipfsNode._repo.exists((err, exists) => {
                 if (err) return cb(err);
@@ -145,6 +144,12 @@ CarService.prototype.listenCarTopic = function(M2MProtocol, topic, msgReceiver, 
  */
 CarService.prototype.listenGPSData = function(dataCallback) {
     var self = this;
+    if (typeof self.gpsport === 'undefined') {
+        self.gpsport = new SerialPort('/dev/ttyS0', {                                       
+            baudrate: 9600,                                                             
+            parser: SerialPort.parsers.readline('\r\n')                                 
+        });
+    }
     self.gpsport.on('data', function(data) {                                                
         self.gps.update(data);                                                           
     });

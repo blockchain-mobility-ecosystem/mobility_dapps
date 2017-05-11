@@ -22,7 +22,7 @@ function mqttMsgReceiver(topic, msg) {
             console.log('\tauthorized');
             car.execCmd(checked.cmd); 
         } else {
-            console.log('\tUser %s unauthorized to access car', addr);
+            console.log('\tUser %s unauthorized to access car', checked.address);
         }
     });
 }
@@ -46,10 +46,10 @@ series([
     (cb) => {
         car = new CarService();
         cb();
-        //car.initIPFS(cb);
+        //car.initIPFS('.jsipfs', cb);
     },
     (cb) => {
-        car.listenCarTopic('MQTT', appcommon.MQTTTopics.CAR_COMMANDS, 
+        car.listenCarTopic('MQTT', appcommon.MQTTTopics.CAR_COMMANDS_MULTIOWNER, 
                 mqttMsgReceiver, cb);
     },
     

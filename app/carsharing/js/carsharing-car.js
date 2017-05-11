@@ -13,7 +13,7 @@ function CarSharing() {
 CarSharing.prototype._mqttMsgDispatch = function (topic, msg) {
     var self = this;
     switch(topic) {
-        case common.MQTTTopics.CAR_COMMANDS:
+        case common.MQTTTopics.CAR_COMMANDS_CARSHARING:
             self.processCarCommand(msg);
             break;
         default:
@@ -42,9 +42,9 @@ CarSharing.prototype.bootup = function(rpcName, callback) {
         (cb) => {
             self.car = new CarService();
             //cb();
-            self.car.startIpfs(cb);
+            self.car.startIpfs('.jsipfs', cb);
         },
-        (cb) => self.car.listenCarTopic('MQTT', common.MQTTTopics.CAR_COMMANDS, 
+        (cb) => self.car.listenCarTopic('MQTT', common.MQTTTopics.CAR_COMMANDS_CARSHARING, 
                 (topic, msg) => {
                     self._mqttMsgDispatch(topic, msg);
                 }, cb),
@@ -79,6 +79,7 @@ CarSharing.prototype.updateCarLocation = function() {
         });
         */
     });
+    console.log('\nStart updating GPS location.');
 }
 
 CarSharing.prototype.shutdown = function () {
@@ -111,5 +112,8 @@ CarSharing.prototype.processCarCommand = function (msg) {
 
 // -$- Application -$-
 var csDapp = new CarSharing();
-csDapp.bootup('testrpc');
+csDapp.bootup('testrpc', () => {
+    csDapp.updateCarLocation();
+});
+
 

@@ -46,13 +46,13 @@ CarSharingUser.prototype.register = function (name, license, callback) {
         var error = result.toNumber();
         if (!error) {
             self.carsharing.registerUser(name, license, {from: self._account, 
-                gas: 154000}).then(function(result) {
+                    gas: 154000}).then(function(result) {
                 var log = utils.retrieveEventLog(result.logs, 'UserRegistered');
-                
                 if (log) {
                     console.log('\nUser registered with account %s', log.args.account);
                     console.log('\tname: %s', self.web3.toAscii(log.args.name));
-                    if(callback) callback();}
+                    if(callback) callback();
+                }
             });
         } else {
             callback('\nError registering user, code: ' + error);
@@ -72,8 +72,10 @@ CarSharingUser.prototype.sendSignedCarCommand = function (cmd) {
     var signedMsg = self.web3.eth.sign(self._account, msgHash);
     msg.signature = signedMsg;
     //console.log(JSON.stringify(msg));
-    self.mqttClient.publish(appcommon.MQTTTopics.CAR_COMMANDS, JSON.stringify(msg));
-    console.log('\nCommand %s has been sent with topic %s', cmd, appcommon.MQTTTopics.CAR_COMMANDS);
+    self.mqttClient.publish(appcommon.MQTTTopics.CAR_COMMANDS_CARSHARING, 
+            JSON.stringify(msg));
+    console.log('\nCommand %s has been sent with topic %s', cmd, 
+            appcommon.MQTTTopics.CAR_COMMANDS_CARSHARING);
 }
 
 // -$- Dapp starts from here -$-

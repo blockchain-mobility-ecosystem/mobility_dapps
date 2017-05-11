@@ -11,3 +11,6 @@ npm-debug.log
 
 # Sensitive?
 hdconfig.json
+
+# IPFS repo
+.jsipfs

@@ -1,6 +1,7 @@
 
 exports.MQTTTopics = {
-    CAR_COMMANDS: 'car-commands-topic'
+    CAR_COMMANDS_CARSHARING: 'carsharing-car-commands-topic',
+    CAR_COMMANDS_MULTIOWNER: 'multiowner-car-commands-topic'
 }
 
 exports.Configs = {
