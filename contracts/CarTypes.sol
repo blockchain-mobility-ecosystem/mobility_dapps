@@ -1,4 +1,4 @@
-pragma solidity ^0.4.8;
+pragma solidity ^0.4.10;
 
 contract CarTypes {
     enum Color { WHITE, BLACK, BLUE, RED}
@@ -6,18 +6,10 @@ contract CarTypes {
     enum CarStatus {AVAILABLE, UNAVAILABLE}
 
     struct Car {
-        bytes17 vin;
         address owner;
-        uint16 year;
-        bytes32 make;
-        bytes32 model;
-        Color color;
-        Transmission transmission;
-        uint8 seats;
         CarStatus status;
         bool exists;
         uint currentRsvt;
-
     }
 
     uint constant CAR_ACCESS_UNLOCK = 1;

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.8;
+pragma solidity ^0.4.10;
 
 import "./CarTypes.sol";
 import "./ErrorTypes.sol";
@@ -8,7 +8,7 @@ contract MobilityRegistry is CarTypes, ErrorTypes {
         address addr;
         bytes32 name;
         bytes16 license;
-        uint8 carsListed;
+        address[] cars;
         bool exists;
     } 
    
@@ -19,37 +19,20 @@ contract MobilityRegistry is CarTypes, ErrorTypes {
     event CarListed(address userAccount, address carAccount);
     
     /// Register a car.
-    function listCar(address cid, // cid = Crypto ID
-        bytes17 vin,
-        uint16 year, 
-        bytes32 make, 
-        bytes32 model, 
-        Color color, 
-        Transmission transmission,
-        uint8 seats
-    ) returns(uint error) {
+    function listCar(address cid) returns(uint error) {
         UserAccount user = users[msg.sender];
         if (!user.exists) {
             return ACCOUNT_NOT_EXIST;
         }
-
         Car car = cars[cid];
         if (car.exists) {
             return CAR_ALREADY_REGISTERED;
         }
          
-        car.vin = vin;
         car.owner = msg.sender;
-        car.year = year;
-        car.make = make;
-        car.model = model;
-        car.color = color;
-        car.transmission = transmission;
-        car.seats = seats;
         car.status = CarStatus.AVAILABLE;
         car.exists = true;
-        user.carsListed += 1;
-
+        user.cars.push(cid);
         CarListed(msg.sender, cid);
         return SUCCESS;
     }

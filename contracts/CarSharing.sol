@@ -1,4 +1,4 @@
-pragma solidity ^0.4.8;
+pragma solidity ^0.4.10;
 
 import "./MobilityRegistry.sol";
 
@@ -6,33 +6,9 @@ contract CarSharing is MobilityRegistry {
     struct Reservation {
         address userCID;
         address carCID;
-        uint start;
-        uint end;
+        uint start; // Epoch time.
+        uint end;   // Epoch time.
         bool exists;
-    }
-    
-    function retrieveCarInfo(address VCID) constant returns (
-        bytes17 vin, 
-        uint16 year, 
-        bytes32 make, 
-        bytes32 model, 
-        Color color, 
-        Transmission transmission, 
-        uint8 seats, 
-        CarStatus status, 
-        bool exists, 
-        uint currentRsvt) {
-        Car RequestedCar = cars[VCID];
-        vin = RequestedCar.vin;
-        year = RequestedCar.year;
-        make = RequestedCar.make;
-        model = RequestedCar.model;
-        color = RequestedCar.color;
-        transmission = RequestedCar.transmission;
-        seats = RequestedCar.seats;
-        status = RequestedCar.status;
-        exists = RequestedCar.exists;
-        currentRsvt = RequestedCar.currentRsvt;
     }
 
     mapping (uint => Reservation) reservations;
@@ -41,6 +17,16 @@ contract CarSharing is MobilityRegistry {
     event CarReserved(address userCID, address carCID);
 
     function CarSharing() { curRsvtNum = 0; }
+    
+    bytes public masterList;
+    
+    // Display availability status.
+    function updateMasterList(bytes inputList) returns (uint error) {
+        if(!users[msg.sender].exists) {
+           return ACCOUNT_NOT_EXIST; 
+        }
+        masterList = inputList;
+    }
     
     /// Reserve a car
     function reserve(address carCID, 
@@ -68,9 +54,9 @@ contract CarSharing is MobilityRegistry {
         CarReserved(msg.sender, carCID);
         return SUCCESS;
     }
-       
+
     /// Car node to check user's pemission to access (lock/unlock) the car.
-    function checkPermission2AccessCar(address userCID) 
+    function checkPermission2AccessCar (address userCID) constant
             returns (uint error, uint permission) 
     {
         Car car = cars[msg.sender];
@@ -87,6 +73,25 @@ contract CarSharing is MobilityRegistry {
         } else {
             return (SUCCESS, CAR_ACCESS_ALL);
         }
+    }
+    /// Retrieve details about a user.
+    function retrieveUserInfo(address userAddress) constant returns (bytes32 name, 
+    bytes16 license, 
+    bool exists) {
+        UserAccount RequestedUserAccount = users[userAddress];
+        name = RequestedUserAccount.name;
+        license = RequestedUserAccount.license;
+        exists = RequestedUserAccount.exists;
+    }
+    
+    /// Retrieve details about the vehicle status and existence.
+    function retrieveCarInfo(address cid) constant returns (CarStatus status, 
+    address owner, 
+    bool exists) {
+        Car RequestedCar = cars[cid];
+        status = RequestedCar.status;
+        exists = RequestedCar.exists;
+        owner =  RequestedCar.owner;
     }
 
     /// About to check out.

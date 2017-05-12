@@ -1,4 +1,4 @@
-pragma solidity ^0.4.8;
+pragma solidity ^0.4.10;
 
 contract ErrorTypes {
     //typedef vin_t bytes17; 
@@ -16,4 +16,3 @@ contract ErrorTypes {
     uint constant CAR_NOT_AVAILABLE = 1002;
 
 }
-
