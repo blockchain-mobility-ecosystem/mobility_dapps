@@ -4,10 +4,12 @@ const ethjsUtil = require('ethereumjs-util');
 const common = require('../../common/js/app-common.js');
 const utils = require('../../common/js/app-utils');
 const CarService = require('../../common/js/car-service');
+const carconfig = require('./car-config');
 
-function CarSharing() {
+function CarSharing(carInfo) {
     var self = this;
     self.CAR_MSG_TTV = 1000*60;
+    self.carInfo = carInfo;
 }
 
 CarSharing.prototype._mqttMsgDispatch = function (topic, msg) {
@@ -41,13 +43,13 @@ CarSharing.prototype.bootup = function(rpcName, callback) {
         },
         (cb) => {
             self.car = new CarService();
-            //cb();
-            self.car.startIpfs('.jsipfs', cb);
+            self.car.startIpfsApi();
+            cb();
         },
         (cb) => self.car.listenCarTopic('MQTT', common.MQTTTopics.CAR_COMMANDS_CARSHARING, 
                 (topic, msg) => {
-                    self._mqttMsgDispatch(topic, msg);
-                }, cb),
+            self._mqttMsgDispatch(topic, msg);
+        }, cb),
         
     ], (err) => {
         if (err) {
@@ -58,28 +60,57 @@ CarSharing.prototype.bootup = function(rpcName, callback) {
     });
 }
 
-CarSharing.prototype.updateCarLocation = function() {
+CarSharing.prototype.updateCarProfile = function() {
     var self = this;
-    self.car.listenGPSData((data) => {
-        if (self.car.gpsFixed) console.log(data);
-        /*
-        const obj = {
-            Data: new Buffer('Some data'),
-            Links: []
-        };
-
-        car.ipfsNode.object.put(obj, (err, node) => {
-            if (err) {
-                cb(err)
-            }
-            console.log(node.toJSON().multihash);
-            // Logs:
-            // QmPb5f92FxKPYdT3QNBd1GKiL4tZUXUrzF4Hkpdr3Gf1gK
-            cb();
+    var profile = {
+        info: self.carInfo,
+        loc: self.car.loc,
+        speed: self.car.speed
+    } 
+    /*
+    const obj = {
+        Data: new Buffer(JSON.stringify(profile)),
+        Links: []
+    };
+    self.car.ipfsNode.object.put(obj, (err, node) => {
+        if (err) throw err;
+        var multihash = node.toJSON().multihash;
+        console.log(multihash);
+        // -$- Update IPNS -$-
+        self.car.ipfsNode.name.publish(multihash, (err, result) => {
+            console.log(result);
         });
-        */
+        self.car.ipfsNode.object.data(multihash, (err, data) => {
+            if (err) throw err;
+            console.log(data.toString());
+        });
     });
-    console.log('\nStart updating GPS location.');
+    */
+    self.car.ipfsNode.files.add([ {
+        path: '/tmp/profile.txt',
+        content: new Buffer(JSON.stringify(profile))
+    }], (err, res) => {
+        if (err) throw err;
+        for(var i = 0; i < res.length; i++) {
+            if (res[i].path === '/tmp/profile.txt') {
+                self.car.ipfsNode.name.publish(res[i].hash, (err, res) => {
+                    if (err) throw err;
+                    console.log(res);
+                    self.car.ipfsNode.name.resolve(res, (err, res) => {
+                        console.log(res);
+                    });
+                });
+                return;
+            }
+        }
+    });
+}
+
+CarSharing.prototype.startProfileUpdateTimer = function() {
+    var self = this;
+    self.profileUpdateTimer = setInterval(() => {
+        self.updateCarProfile();
+    }, 1000*30);
 }
 
 CarSharing.prototype.shutdown = function () {
@@ -111,9 +142,10 @@ CarSharing.prototype.processCarCommand = function (msg) {
 }
 
 // -$- Application -$-
-var csDapp = new CarSharing();
+var csDapp = new CarSharing(carconfig['OakenTestCar']);
 csDapp.bootup('testrpc', () => {
-    csDapp.updateCarLocation();
+    csDapp.car.startGPSData();
+    csDapp.startProfileUpdateTimer();
 });
 
 

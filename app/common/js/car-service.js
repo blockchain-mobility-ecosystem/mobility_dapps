@@ -2,6 +2,7 @@ const series = require('async/series');
 const geolib = require('geolib');
 const GPS = require('gps');                                                       
 const IPFS = require('ipfs');
+const ipfsAPI = require('ipfs-api')
 const mqtt = require('mqtt');
 const multiaddr = require('multiaddr')
 const os = require('os')
@@ -97,6 +98,11 @@ CarService.prototype.startIpfs = function(repo, callback) {
 
 }
 
+CarService.prototype.startIpfsApi = function() {
+    var self = this;
+    self.ipfsNode = ipfsAPI({host: 'localhost', port: '5001', protocol: 'http'});
+}
+
 /**
  * Listen to the car command topic from IPFS P2P pubsub network.
  * @param {function} msgReceiver Callback function to process topic data.
@@ -140,9 +146,8 @@ CarService.prototype.listenCarTopic = function(M2MProtocol, topic, msgReceiver, 
 
 /**
  * Start listening GPS data.
- * @param {function} dataCallback The callback function to receive the data.
  */
-CarService.prototype.listenGPSData = function(dataCallback) {
+CarService.prototype.startGPSData = function() {
     var self = this;
     if (typeof self.gpsport === 'undefined') {
         self.gpsport = new SerialPort('/dev/ttyS0', {                                       
@@ -150,30 +155,29 @@ CarService.prototype.listenGPSData = function(dataCallback) {
             parser: SerialPort.parsers.readline('\r\n')                                 
         });
     }
+
     self.gpsport.on('data', function(data) {                                                
         self.gps.update(data);                                                           
     });
-    self.gps.on('GGA', function(data) {                                                  
-        if (data.quality !== null) {
+
+    self.gps.on('data', function(data) {                                                  
+        // or on GGA
+        var state = self.gps.state;
+        if (state.fix !== null) {
             self.gpsFixed = true;
+            self.loc = {
+                time: new Date(state.time).getTime(),
+                lat: state.lat,
+                lon: state.lon,
+                alt: state.alt
+            };
+            self.speed = state.speed;
+            //console.log(self.loc, self.speed);
         } else {
             self.gpsFixed = false;
         }
-        /*
-           console.log(data.time, data.lat, data.lon);                                 
-           console.log(data.time.constructor);                                         
-           if (data.lat != null) {                                                     
-           console.log(geolib.decimal2sexagesimal(data.lat),                       
-           geolib.decimal2sexagesimal(data.lon));                          
-           }                                                                           
-           */
-        // -$- Preprocessing data ? -$-
-        dataCallback(data);
-        
     });
-    
     self.gpsListening = true;
-
 }
 
 /**

@@ -1,0 +1,11 @@
+{
+    "OakenTestCar": {
+        "vin": "J888888",
+        "year": 2020,
+        "make": "Oaken",
+        "model": "voyage",
+        "color": "gold",
+        "transmission": "ai",
+        "seats": 4
+    }
+}

@@ -3,6 +3,15 @@ const contract = require('truffle-contract');
 const HDWalletProvider = require("truffle-hdwallet-provider");
 const Web3 = require('web3');
 
+const mqttmsg = {
+    sender: '',
+    date: '',
+    type: 'request/response/command',
+    msg: '',
+    seqno: 0,
+    signature: ''
+}
+
 exports.checkMyEtherWalletSignedMsg = function (msg, ttv) {
     msg = JSON.parse(msg);
     // Check signature

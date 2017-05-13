@@ -2,7 +2,7 @@ const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-  entry: './app/javascripts/car-sharing.js',
+  entry: './app/multiowner/js/car-sharing.js',
   output: {
     path: path.resolve(__dirname, 'build'),
     filename: 'app.js'

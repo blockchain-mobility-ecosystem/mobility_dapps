@@ -46,7 +46,6 @@ series([
     (cb) => {
         car = new CarService();
         cb();
-        //car.initIPFS('.jsipfs', cb);
     },
     (cb) => {
         car.listenCarTopic('MQTT', appcommon.MQTTTopics.CAR_COMMANDS_MULTIOWNER, 
