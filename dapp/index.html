@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<!--
+This is a starter template page. Use this page to start your new project from
+scratch. This page gets rid of all links and provides the needed markup only.
+-->
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Mobility Dapps</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <!-- Bootstrap 3.3.6 -->
+    <link rel="stylesheet" href="./bootstrap/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css">
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="dist/css/AdminLTE.min.css">
+    <link rel="stylesheet" href="custom-css/custom.css">
+    <!-- AdminLTE Skins. We have chosen the skin-blue for this starter
+        page. However, you can choose any other skin. Make sure you
+        apply the skin class to the body tag so the changes take effect.
+  -->
+    <link rel="stylesheet" href="dist/css/skins/skin-red-light.min.css">
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+</head>
+
+<body class="hold-transition skin-red-light fixed sidebar-collapse">
+    <div class="wrapper">
+        <!-- Main Header -->
+        <header class="main-header">
+            <!-- Logo -->
+            <a href="index.html" class="logo">
+                <!-- mini logo for sidebar mini 50x50 pixels -->
+                <span class="logo-mini"><b>m</b>DAPPS</span>
+                <!-- logo for regular state and mobile devices -->
+                <span class="logo-lg"><b>Mobility</b>DAPPS</span>
+            </a>
+            <!-- Header Navbar -->
+            <nav class="navbar navbar-static-top" role="navigation">
+                <!-- Sidebar toggle button-->
+                <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+                    <span class="sr-only">Toggle navigation</span>
+                </a>
+            </nav>
+        </header>
+        <!-- Left side column. contains the logo and sidebar -->
+        <aside class="main-sidebar">
+            <!-- sidebar: style can be found in sidebar.less -->
+            <section class="sidebar">
+                <!-- Sidebar user panel (optional) -->
+                <div class="user-panel">
+                    <div id="icon" class="pull-left image" alt="User Account Icon" data-toggle="modal" data-target="#accountManagement"></div>
+                    <div id="user-info" class="pull-left info"></div>
+                </div>
+                <!-- Sidebar Menu -->
+                <ul class="sidebar-menu">
+                    <!-- Optionally, you can add icons to the links -->
+                    <li class="active"><a href="rentavehicle.html"><i class="fa fa-car"></i> <span>Rent a Vehicle</span></a></li>
+                    <li><a href="leasemyvehicle.html"><i class="fa fa-money"></i> <span>Lease my vehicle</span></a></li>
+                    <li class="active"><a href="managevehicles.html"><i class="fa fa-tasks"></i> <span>Manage Vehicles</span></a></li>
+                    <li><a href="#"><i class="fa fa-info-circle"></i> <span>About this Dapp</span></a></li>
+                </ul>
+                <!-- /.sidebar-menu -->
+            </section>
+            <!-- /.sidebar -->
+        </aside>
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper">
+            <!-- Main content -->
+            <section class="content">
+                <div class="row">
+                    <div class="Absolute-Center is-Responsive">
+                        <h2 class="text-center text-primary">
+                          LEASE OR RENT
+                        </h2>
+                        <form action="rentavehicle.html">
+                            <button type="submit" class="btn btn-primary btn-lg center-block">
+                                Rent a vehicle
+                            </button>
+                        </form>
+                        <br>
+                        <form action="leasemyvehicle.html">
+                            <button type="submit" class="btn btn-primary btn-lg center-block">
+                                Lease my vehicle
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+            <!-- /.content -->
+        </div>
+        <!-- /.content-wrapper -->
+    </div>
+    <!-- /.content-wrapper -->
+    <div class="modal fade" id="accountManagement" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">Account Management</h4>
+                </div>
+                <div class="modal-body">
+                    <form action="../../index.html" method="post">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <label>Select the Ethereum account that will act as your identity.</label>
+                                <select id="acctSelect" class="form-control" onChange="accountManagementModal();">
+                                    <option>Select an address</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-user fa-fw"></i></span>
+                                <input id="name" type="text" class="form-control" placeholder="Full Name">
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-credit-card fa-fw"></i></span>
+                                <input id="driversLicense#" type="text" class="form-control" placeholder="Driver's License #">
+                            </div>
+                            <br>
+                            <div class="row">
+                                <div id="registerUserResults" class="col-xs-8">
+                                </div>
+                                <!-- /.col -->
+                                <div class="col-xs-4">
+                                    <button onclick="registerUser();" type="button" class="btn btn-primary btn-block btn-flat">Register</button>
+                                </div>
+                                <!-- /.col -->
+                            </div>
+                        </div>
+                    </form>
+                    <!-- /.form-box -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button onclick="saveAccountDefault();" type="button" class="btn btn-primary" data-dismiss="modal">Use the Selected Account</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ./wrapper -->
+    <!-- REQUIRED JS SCRIPTS -->
+    <!-- CUSTOM -->
+    <script src="custom-js/utilities.js"></script>
+    <!-- IPFS -->
+    <script src="https://unpkg.com/ipfs-api/dist/index.js"></script>
+    <script src="custom-js/ipfs-mini.min.js"></script>
+    <script src="custom-js/ipfs.js"></script>
+    <!-- ETH -->
+    <script src="custom-js/blockies.min.js"></script>
+    <script src="custom-js/web3.min.js"></script>
+    <script src="custom-js/eth.js"></script>
+    <!-- jQuery 2.2.3 -->
+    <script src="plugins/jQuery/jquery-2.2.3.min.js"></script>
+    <script src="plugins/slimScroll/jquery.slimscroll.min.js"></script>
+    <!-- Bootstrap 3.3.6 -->
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="dist/js/app.min.js"></script>
+</body>
+
+</html>
