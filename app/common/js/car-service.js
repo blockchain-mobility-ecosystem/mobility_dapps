@@ -120,7 +120,7 @@ CarService.prototype._subscribe2IPFSCarTopic = function(topic, msgReceiver, cb) 
 
 CarService.prototype._subscribe2MQTTCarTopic = function(topic, msgReceiver, cb) {
     var self = this;
-    client = mqtt.connect(appcommon.Configs.MQTT_Broker_URL);
+    client = mqtt.connect(appcommon.Configs.MQTT_Broker_TCP);
     client.on('connect', () => {
         client.subscribe(topic);
         console.log('\nSubscribed to %s from MQTT.', topic);
@@ -178,6 +178,7 @@ CarService.prototype.startGPSData = function() {
         }
     });
     self.gpsListening = true;
+    console.log('\nStart sharing GPS data.');
 }
 
 /**

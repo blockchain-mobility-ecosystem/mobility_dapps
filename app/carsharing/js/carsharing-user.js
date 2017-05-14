@@ -26,7 +26,7 @@ CarSharingUser.prototype.startup = function(chainRPCName, callback) {
             });
             },
         (cb) => {
-            self.mqttClient = mqtt.connect(appcommon.Configs.MQTT_Broker_URL);
+            self.mqttClient = mqtt.connect(appcommon.Configs.MQTT_Broker_TCP);
             self.mqttClient.on('connect', () => {
                 cb();
             });

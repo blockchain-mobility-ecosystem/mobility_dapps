@@ -5,7 +5,8 @@ exports.MQTTTopics = {
 }
 
 exports.Configs = {
-    MQTT_Broker_URL: 'tcp://35.166.170.137:1883',
+    MQTT_Broker_TCP: 'tcp://35.166.170.137:1883',
+    MQTT_BROKER_WS: 'ws://35.166.170.137:3000',
     IPFS_Bootstrap_Peers: [
         '/dns4/ams-1.bootstrap.libp2p.io/tcp/443/wss/ipfs/QmSoLer265NRgSp2LA3dPaeykiS1J6DifTC88f5uVQKNAd'
     ]

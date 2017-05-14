@@ -3,15 +3,11 @@ const contract = require('truffle-contract');
 const HDWalletProvider = require("truffle-hdwallet-provider");
 const Web3 = require('web3');
 
-const mqttmsg = {
-    sender: '',
-    date: '',
-    type: 'request/response/command',
-    msg: '',
-    seqno: 0,
-    signature: ''
-}
-
+/**
+ * Check the MyEtherWallet signed message.
+ * @param {String} msg The message string.
+ * @param {Number} ttv The time to be valid for the message.
+ */
 exports.checkMyEtherWalletSignedMsg = function (msg, ttv) {
     msg = JSON.parse(msg);
     // Check signature
@@ -29,7 +25,6 @@ exports.checkMyEtherWalletSignedMsg = function (msg, ttv) {
         console.log('Signature is bad, not able to process message.');
         return {pass: false};
     }
-
     // Check date
     var contents = msg.msg.split(' ');
     var cmd = contents[0].trim();
@@ -45,6 +40,12 @@ exports.checkMyEtherWalletSignedMsg = function (msg, ttv) {
     return {pass: true, cmd: cmd, address: addr};
 }
 
+/**
+ * Check signed message in oaken style data format.
+ * @param {String} msg The message string.
+ * @param {Number} ttv Time to be valid for the message.
+ * @returns {json} Return an object {pass: Boolean, cmd: String, address: String}
+ */
 exports.checkOakenSignedMsg = function (msg, ttv) {
     msg = JSON.parse(msg);
     // Check signature
@@ -107,6 +108,14 @@ exports.bootstrapContract = function (provider, artifacts, callback) {
     });
 }
 
+/**
+ * Boostrap a web3 client and account.
+ * @param {String} rpcName The client rpc name. ['testrpc', 'geth', 'infura']
+ * @param {String} accountName The account name corresponding to the address 
+ *      index of the wallet accounts. ['truffle', 'car', 'user', 'owner', etc.]
+ * @param {JSON} hdconfig The json object for the account configurations.
+ * @param callback The callback function with web3 and account as params.
+ */
 exports.bootstrapWeb3Account = function (rpcName, accountName, hdconfig, callback) {
     const accIdx = hdconfig['accounts'][accountName]['index'];
     const rpcconfig =  hdconfig['rpcs'][rpcName];
@@ -132,3 +141,4 @@ exports.bootstrapWeb3Account = function (rpcName, accountName, hdconfig, callbac
         callback(web3, account);
     });
 }
+

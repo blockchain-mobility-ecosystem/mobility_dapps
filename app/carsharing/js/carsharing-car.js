@@ -1,5 +1,7 @@
 const series = require('async/series');
 const ethjsUtil = require('ethereumjs-util');
+const MQTTT = require('mqttt');
+const util = require('util');
 
 const common = require('../../common/js/app-common.js');
 const utils = require('../../common/js/app-utils');
@@ -95,10 +97,12 @@ CarSharing.prototype.updateCarProfile = function() {
             if (res[i].path === '/tmp/profile.txt') {
                 self.car.ipfsNode.name.publish(res[i].hash, (err, res) => {
                     if (err) throw err;
-                    console.log(res);
+                    //console.log(res);
+                    /*
                     self.car.ipfsNode.name.resolve(res, (err, res) => {
                         console.log(res);
                     });
+                    */
                 });
                 return;
             }
@@ -141,10 +145,48 @@ CarSharing.prototype.processCarCommand = function (msg) {
     });
 }
 
+CarSharing.prototype.startMQTTT = function() {
+    var self = this;
+    var mqtttClient = new MQTTT(self.web3, self._account, common.Configs.MQTT_Broker_TCP, 1000*60);
+    mqtttClient.listen(true, (err, msg) => {
+        if (err) throw err;
+        console.log('Received ', msg.data);
+        switch(msg.type) {
+            case 'request':
+                self.processRequest(msg); 
+                break;
+            case 'response':
+                break;
+            case 'command':
+                break;
+            default:
+                console.log(util.format('Unsupported mqttt message type %s', msg.type));
+        }
+    });
+    self.mqtttClient = mqtttClient;
+}
+
+CarSharing.prototype.processRequest = function(msg) {
+    var self = this;
+    switch(msg.data) {
+        case 'update':
+            var data = {
+                info: self.carInfo,
+                loc: self.car.loc,
+                speed: self.car.speed
+            };
+            self.mqtttClient.send(msg.from, JSON.stringify(data), 'response');
+            break;
+        default:
+            console.log(util.format('Unsupported request type %s', msg.data));
+    }
+}
+
 // -$- Application -$-
 var csDapp = new CarSharing(carconfig['OakenTestCar']);
 csDapp.bootup('testrpc', () => {
     csDapp.car.startGPSData();
+    csDapp.startMQTTT();
     csDapp.startProfileUpdateTimer();
 });
 
