@@ -56,13 +56,13 @@ function accountChoiceLoad() {
 }
 
 function displayAccountInfo() {
-    console.log("In displayAccountInfo()");
     var userData = getUserDetails(web3.eth.defaultAccount);
     var icon = document.getElementById('icon');
     icon.style.backgroundImage = 'url(' + blockies.create({ seed: web3.eth.defaultAccount, size: 15, scale: 3 }).toDataURL() + ')';
     if (userData.exists) {
         document.getElementById('user-info').innerHTML = '<a href=https://ropsten.etherscan.io/address/' + web3.eth.defaultAccount +
-            ' &quot; target=&quot;_blank&quot;>' + web3.eth.defaultAccount.substring(0, 10) + '...</a><br>' + web3.toAscii(userData.name);
+            ' &quot; target=&quot;_blank&quot;>' + web3.toAscii(userData.name) + '</a><br>' + '<small>100MOB</small></br';
+
         icon.style.backgroundImage = 'url(' + blockies.create({ seed: web3.eth.defaultAccount, size: 15, scale: 3 }).toDataURL() + ')';
     } else {
         document.getElementById('user-info').innerHTML = '<a href=https://ropsten.etherscan.io/address/"' + web3.eth.defaultAccount +

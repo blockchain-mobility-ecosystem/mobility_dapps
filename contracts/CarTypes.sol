@@ -7,6 +7,7 @@ contract CarTypes {
 
     struct Car {
         address owner;
+        bytes IPNSAddr;
         CarStatus status;
         bool exists;
         uint currentRsvt;

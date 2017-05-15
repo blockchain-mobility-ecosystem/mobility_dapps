@@ -13,7 +13,7 @@ function addMarker(name, carObject) {
     });
 }
 
-document.getElementById('submit').addEventListener('click', function() {
+/*document.getElementById('submit').addEventListener('click', function() {
     geocodeAddress(geocoder, map);
 
     function geocodeAddress(geocoder, resultsMap) {
@@ -31,7 +31,7 @@ document.getElementById('submit').addEventListener('click', function() {
             }
         });
     }
-});
+});*/
 
 function getLatLong() {
     currentCoords.innerHTML = marker.getPosition();

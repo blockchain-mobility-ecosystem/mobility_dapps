@@ -74,6 +74,7 @@ contract CarSharing is MobilityRegistry {
             return (SUCCESS, CAR_ACCESS_ALL);
         }
     }
+    
     /// Retrieve details about a user.
     function retrieveUserInfo(address userAddress) constant returns (bytes32 name, 
     bytes16 license, 
@@ -86,12 +87,13 @@ contract CarSharing is MobilityRegistry {
     
     /// Retrieve details about the vehicle status and existence.
     function retrieveCarInfo(address cid) constant returns (CarStatus status, 
-    address owner, 
+    address owner, bytes IPNSAddr,
     bool exists) {
         Car RequestedCar = cars[cid];
         status = RequestedCar.status;
         exists = RequestedCar.exists;
         owner =  RequestedCar.owner;
+        IPNSAddr = RequestedCar.IPNSAddr;
     }
 
     /// About to check out.

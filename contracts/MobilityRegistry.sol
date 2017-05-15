@@ -19,7 +19,7 @@ contract MobilityRegistry is CarTypes, ErrorTypes {
     event CarListed(address userAccount, address carAccount);
     
     /// Register a car.
-    function listCar(address cid) returns(uint error) {
+    function listCar(address cid, bytes IPNSAddr) returns(uint error) {
         UserAccount user = users[msg.sender];
         if (!user.exists) {
             return ACCOUNT_NOT_EXIST;
@@ -32,6 +32,7 @@ contract MobilityRegistry is CarTypes, ErrorTypes {
         car.owner = msg.sender;
         car.status = CarStatus.AVAILABLE;
         car.exists = true;
+        car.IPNSAddr = IPNSAddr;
         user.cars.push(cid);
         CarListed(msg.sender, cid);
         return SUCCESS;

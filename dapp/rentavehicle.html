@@ -77,14 +77,17 @@ scratch. This page gets rid of all links and provides the needed markup only.
         </aside>
         <!-- Content Wrapper. Contains page content -->
         <div class="content-wrapper center-block">
-            <div id=message>
+            <!--             <div id=message>
+            <h3>
                 Drag and drop your car pin to make sure it's exactly where you plan to leave it! Once you're ready to lease, nay renter must return your car within 0.2 miles of the set location.
-            </div>
-            <div id="floating-panel">
-                <input id="address" type="textbox" value="Dallas, TX">
+                </h3>
+            </div> -->
+            <input id="map-lookup" class="controls" type="text" placeholder="Search Box">
+            <!--             <div id="floating-panel">
+                <input id="address" type="textbox" value="New York, NY">
                 <input id="submit" type="button" value="Lookup Address">
-            </div>
-            <div id="rent-a-vehicle-map" style="width: 100%; height: 400px;">No Map</div>
+            </div> -->
+            <div id="rent-a-vehicle-map" style="width: 100%; height: 400px;">Map loading...</div>
             <div id="not-map">
                 <div id="currentCoords"></div>
             </div>
@@ -92,7 +95,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
             </div>
             <br>
             <!-- /.content-wrapper -->
-            <div id="vehicleList" class="panel-group" id="accordionTwo">
+            <!--             <div id="vehicleList" class="panel-group" id="accordionTwo">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4 class="panel-title">
@@ -109,7 +112,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
             <div class="modal fade" id="accountManagement" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
@@ -160,7 +163,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
             <!-- CUSTOM -->
             <script src="custom-js/utilities.js"></script>
             <!-- MAPS -->
-            <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-XqSsBOhY22ZKS8SKhy2CpQxW7x4eveI">
+            <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-XqSsBOhY22ZKS8SKhy2CpQxW7x4eveI&libraries=places">
             </script>
             <script src="dist/js/map-icons.js"></script>
             <script async defer src="custom-js/maps.js"></script>

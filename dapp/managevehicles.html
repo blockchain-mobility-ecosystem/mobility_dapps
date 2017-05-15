@@ -10,7 +10,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Mobility Dapps | Manage Vehicles</title>
     <!-- Tell the browser to be responsive to screen width -->
-    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
     <!-- Bootstrap 3.3.6 -->
     <link rel="stylesheet" href="./bootstrap/css/bootstrap.min.css">
     <!-- Font Awesome -->
@@ -76,20 +76,20 @@ scratch. This page gets rid of all links and provides the needed markup only.
         <!-- Content Wrapper. Contains page content -->
         <div class="content-wrapper">
             <!-- Main content -->
-            <section class="content outer">
-                <div class="row middle">
-                    <div class="col-md-2 Absolute-Center"></div>
-                    <div style="margin: auto;" class="col-md-8 is-Responsive inner">
+            <section class="content">
+                <div class="row">
+                    <div class="col-md-2"></div>
+                    <div class="col-md-8">
                         <div class="list-group">
                             <a href="#" class="list-group-item">
                                 <div class="table-responsive">
                                     <table class='table borderless' style="margin-bottom: 0px !important;">
                                         <tr>
-                                            <td style="width:180px;border-top: 0px !important;">
+                                            <td style="width:180px;border: 0px !important;">
                                                 <img src="images/prius.png" class="car-list-image" alt="Vehicle">
                                                 <h4 if="car-rented-YMM" class="pull-right">2016 Toyota Prius</h4>
                                             </td>
-                                            <td style="min-width:180px;border-top: 0px !important;">
+                                            <td style="max-width:180px;border: 0px !important;">
                                                 <form action="#">
                                                     <button type="submit" class="btn btn-danger btn-flat btn-lg btn-block">
                                                         Unlock Car
@@ -116,6 +116,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                             End Rental
                         </button>
                     </div>
+                    <div class="col-md-2"></div>
             </section>
             <!-- /.content -->
             </div>
@@ -171,7 +172,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
         <!-- CUSTOM -->
         <script src="custom-js/utilities.js"></script>
         <!-- MAPS -->
-        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-XqSsBOhY22ZKS8SKhy2CpQxW7x4eveI">
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-XqSsBOhY22ZKS8SKhy2CpQxW7x4eveI&libraries=places">
         </script>
         <script src="dist/js/map-icons.js"></script>
         <script async defer src="custom-js/maps.js"></script>
