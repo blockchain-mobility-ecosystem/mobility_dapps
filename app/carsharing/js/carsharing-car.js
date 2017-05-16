@@ -1,6 +1,6 @@
 const series = require('async/series');
 const ethjsUtil = require('ethereumjs-util');
-const MQTTT = require('mqttt');
+const mqttt = require('mqttt');
 const util = require('util');
 
 const common = require('../../common/js/app-common.js');
@@ -10,7 +10,7 @@ const carconfig = require('./car-config');
 
 function CarSharing(carInfo) {
     var self = this;
-    self.CAR_MSG_TTV = 1000*60;
+    self.CAR_MSG_TTV = 1000*60*60;
     self.carInfo = carInfo;
 }
 
@@ -45,8 +45,7 @@ CarSharing.prototype.bootup = function(rpcName, callback) {
         },
         (cb) => {
             self.car = new CarService();
-            self.car.startIpfsApi();
-            cb();
+            self.car.startIpfsApi(cb);
         },
         (cb) => self.car.listenCarTopic('MQTT', common.MQTTTopics.CAR_COMMANDS_CARSHARING, 
                 (topic, msg) => {
@@ -67,27 +66,9 @@ CarSharing.prototype.updateCarProfile = function() {
     var profile = {
         info: self.carInfo,
         loc: self.car.loc,
-        speed: self.car.speed
+        speed: self.car.speed,
+        locked: self.car.locked
     } 
-    /*
-    const obj = {
-        Data: new Buffer(JSON.stringify(profile)),
-        Links: []
-    };
-    self.car.ipfsNode.object.put(obj, (err, node) => {
-        if (err) throw err;
-        var multihash = node.toJSON().multihash;
-        console.log(multihash);
-        // -$- Update IPNS -$-
-        self.car.ipfsNode.name.publish(multihash, (err, result) => {
-            console.log(result);
-        });
-        self.car.ipfsNode.object.data(multihash, (err, data) => {
-            if (err) throw err;
-            console.log(data.toString());
-        });
-    });
-    */
     self.car.ipfsNode.files.add([ {
         path: '/tmp/profile.txt',
         content: new Buffer(JSON.stringify(profile))
@@ -97,12 +78,6 @@ CarSharing.prototype.updateCarProfile = function() {
             if (res[i].path === '/tmp/profile.txt') {
                 self.car.ipfsNode.name.publish(res[i].hash, (err, res) => {
                     if (err) throw err;
-                    //console.log(res);
-                    /*
-                    self.car.ipfsNode.name.resolve(res, (err, res) => {
-                        console.log(res);
-                    });
-                    */
                 });
                 return;
             }
@@ -126,7 +101,11 @@ CarSharing.prototype.processCarCommand = function (msg) {
     var self = this;
     var msg = msg.toString().trim();
     console.log('\nReceived new message: ', msg);
-    var checked = utils.checkOakenSignedMsg(msg, self.CAR_MSG_TTV);
+    if (typeof JSON.parse(msg).date === 'undefined') {
+        var checked = utils.checkMyEtherWalletSignedMsg(msg, self.CAR_MSG_TTV);
+    } else {
+        var checked = utils.checkOakenSignedMsg(msg, self.CAR_MSG_TTV);
+    }
     if (!checked.pass) return;
 
     // Check permission
@@ -145,12 +124,12 @@ CarSharing.prototype.processCarCommand = function (msg) {
     });
 }
 
-CarSharing.prototype.startMQTTT = function() {
+CarSharing.prototype.startMQTTT = function(signer) {
     var self = this;
-    var mqtttClient = new MQTTT(self.web3, self._account, common.Configs.MQTT_Broker_TCP, 1000*60);
+    var mqtttClient = new mqttt.MQTTT(self._account, signer, 
+            common.Configs.MQTT_Broker_TCP, 1000*60);
     mqtttClient.listen(true, (err, msg) => {
         if (err) throw err;
-        console.log('Received ', msg.data);
         switch(msg.type) {
             case 'request':
                 self.processRequest(msg); 
@@ -158,6 +137,7 @@ CarSharing.prototype.startMQTTT = function() {
             case 'response':
                 break;
             case 'command':
+                self.processCommand(msg);
                 break;
             default:
                 console.log(util.format('Unsupported mqttt message type %s', msg.type));
@@ -166,14 +146,21 @@ CarSharing.prototype.startMQTTT = function() {
     self.mqtttClient = mqtttClient;
 }
 
-CarSharing.prototype.processRequest = function(msg) {
+CarSharing.prototype.processRequest = function (msg) {
     var self = this;
+    console.log('Processing request ' + msg.data);
     switch(msg.data) {
-        case 'update':
+        case 'getprofile':
             var data = {
                 info: self.carInfo,
+            };
+            self.mqtttClient.send(msg.from, JSON.stringify(data), 'response');
+            break;
+        case 'getstatus':
+            var data = {
                 loc: self.car.loc,
-                speed: self.car.speed
+                speed: self.car.speed,
+                locked: self.car.locked
             };
             self.mqtttClient.send(msg.from, JSON.stringify(data), 'response');
             break;
@@ -182,11 +169,38 @@ CarSharing.prototype.processRequest = function(msg) {
     }
 }
 
+CarSharing.prototype.processCommand = function (msg) {
+    var self = this;
+    console.log('Processing command ' + msg.data);
+    switch (msg.data) {
+        case 'unlock':
+            var res = {
+                err: null,
+                result: 'unlocked'
+            };
+            self.car.execCmd('unlock');
+            self.mqtttClient.send(msg.from, JSON.stringify(res), 'response');
+            break;
+        case 'lock':
+            var res = {
+                err: null,
+                result: 'locked'
+            };
+            self.car.execCmd('lock');
+            self.mqtttClient.send(msg.from, JSON.stringify(res), 'response');
+            break;
+        default:
+            console.log(util.format('Unsupported command type %s', msg.data));
+    }
+}
+
 // -$- Application -$-
 var csDapp = new CarSharing(carconfig['OakenTestCar']);
-csDapp.bootup('testrpc', () => {
+csDapp.bootup('infura', () => {
     csDapp.car.startGPSData();
-    csDapp.startMQTTT();
+    var privkey = csDapp.web3.currentProvider.wallet.getPrivateKey();
+    var signer = new mqttt.signers.PrivKeySigner(privkey);
+    csDapp.startMQTTT(signer);
     csDapp.startProfileUpdateTimer();
 });
 

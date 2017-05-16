@@ -28,6 +28,7 @@ function CarService() {
     
 
     self._keyfob = keyfob; 
+    self.locked = 'unknown';
 }
 
 /**
@@ -98,9 +99,16 @@ CarService.prototype.startIpfs = function(repo, callback) {
 
 }
 
-CarService.prototype.startIpfsApi = function() {
+CarService.prototype.startIpfsApi = function(cb) {
     var self = this;
     self.ipfsNode = ipfsAPI({host: 'localhost', port: '5001', protocol: 'http'});
+    self.ipfsNode.id((err, identity) => {
+        if (err) return cb(err);
+        console.log('\nIPFS node id ' + identity.id);
+        self.ipfsNodeId = identity.id;
+        cb();
+    });
+
 }
 
 /**
@@ -190,10 +198,12 @@ CarService.prototype.execCmd = function (command) {
         case 'lock':
             console.log('\nLocking...');
             self._keyfob.lock();
+            self.locked = true;
             break;
         case 'unlock':
             console.log('\nUnlocking...');
             self._keyfob.unlock();
+            self.locked = false;
             break;
         default:
             console.log('\nUnsupported car command %s.', msg.cmd);

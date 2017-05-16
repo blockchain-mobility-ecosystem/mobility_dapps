@@ -127,8 +127,14 @@ exports.bootstrapWeb3Account = function (rpcName, accountName, hdconfig, callbac
         var hdwProvider = new HDWalletProvider(hdconfig['mnemonic'], rpcserver, accIdx);
         web3 = new Web3(hdwProvider);
     } else {
-        web3 = new Web3(new Web3.providers.HttpProvider(rpcserver))
+        if (rpcconfig['protocol'] === 'ipc') {
+            web3 = new Web3(new Web3.providers.IpcProvider(rpcconfig['host'], require('net')));
+        }
+        else {
+            web3 = new Web3(new Web3.providers.HttpProvider(rpcserver));
+        }
     }
+
     web3.eth.getAccounts(function(err, accs) {
         if (err) throw new Error(err);
         if (accs.length == 0) {
