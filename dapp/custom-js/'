@@ -194,32 +194,36 @@ function addRentableVehicles() {
     // https://coderwall.com/p/kvzbpa/don-t-use-array-foreach-use-for-instead
     for (i = 0; i < globalFileJSON.States.NewYork.length; i++) {
         console.log("globalFileJSON.States.NewYork[i] is: " + globalFileJSON.States.NewYork[i]);
-				retrieveFileFromIPFS(globalFileJSON.States.NewYork[i], (file) => {
-          var content = JSON.parse(file.toString());
-          var userID = content.userid;
-          var vehicles = content.vehicles;
-          console.log(util.format("userID: %s, vehicles: %s", userID, vehicles));
-          addUserVehicles(userID, vehicles);
-				});
-				
+        var userFromList = ipfs.files.cat(globalFileJSON.States.NewYork[i], function(err, stream) {
+            if (err) throw err;
+            stream.on('data', (file) => {
+              var content = JSON.parse(file.toString());
+              var userID = content.userid;
+              var vehicles = content.vehicles;
+              console.log(util.format("userID: %s, vehicles: %s", userID, vehicles));
+              addUserVehicles(userID, vehicles);
+            });
+        });
+
+
     }
 }
 
 function addUserVehicles(userID, vehicleIPNSList) {
-	// TODO: Temporary disable loop since the second vehicle IPNS doesn't work.
   //for (j = 0; j < vehicleIPNSList.length; j++) {
   for(var j = 0; j < 1; j++) {
     console.log('Resolving IPNS name: ' + vehicleIPNSList[j]);
-    var resolvedVehicle = resolveFromIPNS(vehicleIPNSList[j], function(path) {
-      var multihash = path.substring(6);
-      console.log(multihash);
-
-      retrieveFileFromIPFS(multihash, (file) => {
-        var content = JSON.parse(file.toString());
-        console.log(content);
-        addMarkerFromIPFS(content);
+    var resolvedVehicle = ipfs.name.resolve(vehicleIPNSList[j], function(err, result) {
+      if (err) throw err;
+      console.log("inside resolvedVehicle: " + JSON.parse(result.toString()));
+      /*
+      var cleanIPNSAddress = JSON.stringify(vehicleIPNS.Path).slice(7).replace("\"", "");
+      console.log("resolvedVehicle cleaned string: " + cleanIPNSAddress);
+      var userFromList = retrieveFileFromIPFS(cleanIPNSAddress, function(vehicleFile) {
+        console.log("vehicleFile is: " + vehicleFile);
+        return addMarkerFromIPFS(vehicleFile);
       });
-
+      */
     });
   }
 }
@@ -239,24 +243,6 @@ function demo() {
 //demo();
 addRentableVehicles();
 
-/*
-Format of vehicleFile
-{ info: 
-   { vin: 'J888888',
-     year: 2020,
-     make: 'Oaken',
-     model: 'voyage',
-     color: 'gold',
-     transmission: 'ai',
-     seats: 4 },
-  loc: 
-   { time: 1495050616000,
-     lat: 40.73602,
-     lon: -78.03983333333333,
-     alt: 50.6 },
-  speed: 0.037040000000000003,
-  locked: true/false/'unknown' }
-*/
 function addMarkerFromIPFS(vehicleFile) {
     var pos = {
         lat: vehicleFile.loc.lat,
