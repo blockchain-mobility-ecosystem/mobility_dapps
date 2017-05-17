@@ -91,13 +91,13 @@ scratch. This page gets rid of all links and provides the needed markup only.
                                             </td>
                                             <td style="max-width:180px;border: 0px !important;">
                                                 <form action="#">
-                                                    <button type="submit" class="btn btn-danger btn-flat btn-lg btn-block">
+                                                    <button type="submit" onclick="unlock()" class="btn btn-danger btn-flat btn-lg btn-block">
                                                         Unlock Car
                                                     </button>
                                                 </form>
                                                 <br>
                                                 <form action="">
-                                                    <button type="submit" class="btn btn-danger btn-flat btn-lg btn-block">
+                                                    <button type="submit" onclick="lock()" class="btn btn-danger btn-flat btn-lg btn-block">
                                                         Lock Car
                                                     </button>
                                                 </form>
@@ -184,6 +184,9 @@ scratch. This page gets rid of all links and provides the needed markup only.
         <script src="custom-js/blockies.min.js"></script>
         <script src="custom-js/web3.min.js"></script>
         <script src="custom-js/eth.js"></script>
+        <!-- Vehicle management -->
+        <script src="custom-js/browserMqtt.js"></script>
+        <script src="custom-js/vehiclemanagement.js"></script>
         <!-- jQuery 2.2.3 -->
         <script src="plugins/jQuery/jquery-2.2.3.min.js"></script>
         <script src="plugins/slimScroll/jquery.slimscroll.min.js"></script>
