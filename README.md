@@ -1,43 +1,17 @@
 # Decentralized Mobility Application Framework
 
-A decentralized mobility application framework on the ethereum blockchain.
+A decentralized mobility application framework.
 
-The framework consists of two use cases / Dapps
-- Carpool
-- Car Sharing (which we're focusing on to deliver the dapp open framework for auto industries)
+The framework consists of in-car components/libs and user car sharing dapps.
 
-# Install
+# Install and run
 
 This dapp was built using the [Truffle Dapp Development Framework]. 
 If you would like to deploy this dapp locally for testing the easiest way to do that is to install 
 [Truffle] and the [testrpc Ethereum client].
 
-## Car-servcie Dapp Prerequisites
 
-Hardware
-- Raspberry Pi (we use Pi 3)
-- GPS Module
-- Car Keyfob Bridge Circuit
-
-Principle Software
-- Raspbian Jessie (OS on Pi)
-- js-ipfs
-- truffle-contract
-- web3
-
-The "wrtc": "0.0.61" package is requred by the js-libp2p-webrtc-star-->js-libp2p-ipfs-browser-->js-ipfs.
-We have forked `node-webrtc` repo for Pi. The official build not working on Pi since the 
-`node-webrtc` library [issue](https://github.com/js-platform/node-webrtc/issues/152).
-
-Follow the instructions in the [repo](https://github.com/Oaken-Innovations/node-webrtc) 
-to install `node-webrtc` to your Pi.
-
-Copy the generated "wrtc.node" to the following node_modules folder
-"node_modules/wrtc/build/wrtc/v0.0.61/Release/node-v48-linux-arm/wrtc.node"
-
-`npm install ipfs` again.
-
-# Usage
+## Compile and install contracts.
 
 You will need to be running testrpc in one terminal instance and Truffle in a second one. 
 This can be accomplished by opening 2 separate terminal windows or using a program like `screen` 
@@ -63,22 +37,11 @@ truffle compile
 truffle migrate
 ```
 
-4. Do some test
+## Run dapps
 
-```Bash
-truffle test test/carpool.js
+To run in-car dapp, go to *app/carsharing* to check out details.
 
-```
-
-5. Try in-car dapp
-
-```Bash
-cd app/carsharing/js
-node carsharing-service.js
-```
-# TODO
-- [ ] Demo GPS data sharing.
-- [ ] Demo Dapp Unlock/Lock the car.
+To run user dapp, go to dapp to check out details.
 
 # License
 Apache 2.0

@@ -2,11 +2,30 @@
 
 This dapp/carsharing service is built for the car node in the car sharing application.
 
-## Hardware requirements
+## Prerequisites
 
-- Raspberry Pi 3
-- GPS module
-- Keyforb bridge circuit
+Hardware
+- Raspberry Pi (we use Pi 3)
+- GPS Module
+- Car Keyfob Bridge Circuit
+
+Principle Software
+- Raspbian Jessie (OS on Pi)
+- js-ipfs
+- truffle-contract
+- web3
+
+The "wrtc": "0.0.61" package is requred by the js-libp2p-webrtc-star-->js-libp2p-ipfs-browser-->js-ipfs.
+We have forked `node-webrtc` repo for Pi. The official build not working on Pi since the 
+`node-webrtc` library [issue](https://github.com/js-platform/node-webrtc/issues/152).
+
+Follow the instructions in the [repo](https://github.com/Oaken-Innovations/node-webrtc) 
+to install `node-webrtc` to your Pi.
+
+Copy the generated "wrtc.node" to the following node_modules folder
+"node_modules/wrtc/build/wrtc/v0.0.61/Release/node-v48-linux-arm/wrtc.node"
+
+`npm install ipfs` again.
 
 ## Usage
 
