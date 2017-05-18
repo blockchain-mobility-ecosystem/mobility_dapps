@@ -1,6 +1,6 @@
 const series = require('async/series');
 
-const CarService = require('../../common/js/car-service');
+const CarService = require('../../car/js/car-service');
 const utils = require('../../common/js/app-utils');
 const appcommon = require('../../common/js/app-common');
 

@@ -5,7 +5,7 @@ const util = require('util');
 
 const common = require('../../common/js/app-common.js');
 const utils = require('../../common/js/app-utils');
-const CarService = require('../../common/js/car-service');
+const CarService = require('../../car/js/car-service');
 const carconfig = require('./car-config');
 
 function CarSharing(carInfo) {
@@ -69,6 +69,7 @@ CarSharing.prototype.updateCarProfile = function() {
         speed: self.car.speed,
         locked: self.car.locked
     } 
+    //console.log(profile);
     self.car.ipfsNode.files.add([ {
         path: '/tmp/profile.txt',
         content: new Buffer(JSON.stringify(profile))
@@ -101,6 +102,11 @@ CarSharing.prototype.processCarCommand = function (msg) {
     var self = this;
     var msg = msg.toString().trim();
     console.log('\nReceived new message: ', msg);
+    if (msg === 'unlock' || msg === 'lock') {
+        self.car.execCmd(msg);
+        return;
+    }
+
     if (typeof JSON.parse(msg).date === 'undefined') {
         var checked = utils.checkMyEtherWalletSignedMsg(msg, self.CAR_MSG_TTV);
     } else {

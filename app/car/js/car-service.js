@@ -10,7 +10,7 @@ const path = require('path')
 const SerialPort = require('serialport');                                         
 const Web3 = require('web3');
 
-const appcommon = require('./app-common');
+const appcommon = require('../../common/js/app-common');
 const keyfob = require('./keyfob');
 
 /**
@@ -28,7 +28,15 @@ function CarService() {
     
 
     self._keyfob = keyfob; 
+    // -$- Some default values for display and ipfs -$-
     self.locked = 'unknown';
+    self.loc = {
+        time: 1495050105, 
+        lat: 37.263056,
+        lon: -115.79302,
+        alt: 0
+    };
+    self.speed = 0;
 }
 
 /**
