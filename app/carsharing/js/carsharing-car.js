@@ -8,12 +8,21 @@ const utils = require('../../common/js/app-utils');
 const CarService = require('../../car/js/car-service');
 const carconfig = require('./car-config');
 
+/**
+ * The CarSharing class.
+ * @constructor
+ */
 function CarSharing(carInfo) {
     var self = this;
     self.CAR_MSG_TTV = 1000*60*60;
     self.carInfo = carInfo;
 }
 
+/**
+ * Dispatch MQTT topic handler.
+ * @param {String} The topic.
+ * @param {Buffer} The message buffer.
+ */
 CarSharing.prototype._mqttMsgDispatch = function (topic, msg) {
     var self = this;
     switch(topic) {
@@ -25,6 +34,12 @@ CarSharing.prototype._mqttMsgDispatch = function (topic, msg) {
     }
 }
 
+/**
+ * Initialize and startup car service.
+ * @param {String} The name of the blockchain rpc service. It supports 'testrpc'
+ *      'infura' and 'geth'.
+ * @param callback The function to be called when finish.
+ */
 CarSharing.prototype.bootup = function(rpcName, callback) {
     var self = this;
     series([     
@@ -45,7 +60,7 @@ CarSharing.prototype.bootup = function(rpcName, callback) {
         },
         (cb) => {
             self.car = new CarService();
-            self.car.startIpfsApi(cb);
+            self.car.startIpfsApi({host: 'localhost', port: '5001', protocol: 'http'}, cb);
         },
         (cb) => self.car.listenCarTopic('MQTT', common.MQTTTopics.CAR_COMMANDS_CARSHARING, 
                 (topic, msg) => {
@@ -61,6 +76,9 @@ CarSharing.prototype.bootup = function(rpcName, callback) {
     });
 }
 
+/**
+ * Update car data periodically to ipfs/ car ipns.
+ */
 CarSharing.prototype.updateCarProfile = function() {
     var self = this;
     var profile = {
@@ -86,6 +104,9 @@ CarSharing.prototype.updateCarProfile = function() {
     });
 }
 
+/**
+ *  Start car data update timer/service.
+ */
 CarSharing.prototype.startProfileUpdateTimer = function() {
     var self = this;
     self.profileUpdateTimer = setInterval(() => {
@@ -98,6 +119,15 @@ CarSharing.prototype.shutdown = function () {
     self.car.stopService();
 }
 
+/**
+ * Process raw car command with mqttt pre-process and verification.
+ *
+ * It handles three kinds of messages: unsigned raw message, MyEtherWallet signed 
+ * and dated message format, and Oaken signed and dated message format.
+ * Will be deprecated by mqttt after testing finishes.
+ *
+ * @param msg The message to be processed.
+ */
 CarSharing.prototype.processCarCommand = function (msg) {
     var self = this;
     var msg = msg.toString().trim();
@@ -130,6 +160,11 @@ CarSharing.prototype.processCarCommand = function (msg) {
     });
 }
 
+/**
+ * Start the MQTTT M2M communication service.
+ * @param signer The data signer instance. For details about MQTTT signers, go 
+ *      to https://github.com/shuangjj/mqttt.
+ */
 CarSharing.prototype.startMQTTT = function(signer) {
     var self = this;
     var mqtttClient = new mqttt.MQTTT(self._account, signer, 
@@ -152,6 +187,10 @@ CarSharing.prototype.startMQTTT = function(signer) {
     self.mqtttClient = mqtttClient;
 }
 
+/**
+ * Process 'request' typed message.
+ * @param msg The message object.
+ */
 CarSharing.prototype.processRequest = function (msg) {
     var self = this;
     console.log('Processing request ' + msg.data);
@@ -175,6 +214,10 @@ CarSharing.prototype.processRequest = function (msg) {
     }
 }
 
+/**
+ * Process MQTTT 'command' typed message.
+ * @param msg The message packet object.
+ */
 CarSharing.prototype.processCommand = function (msg) {
     var self = this;
     console.log('Processing command ' + msg.data);
@@ -200,7 +243,7 @@ CarSharing.prototype.processCommand = function (msg) {
     }
 }
 
-// -$- Application -$-
+// -$- Application starts here -$-
 var csDapp = new CarSharing(carconfig['OakenTestCar']);
 csDapp.bootup('infura', () => {
     csDapp.car.startGPSData();

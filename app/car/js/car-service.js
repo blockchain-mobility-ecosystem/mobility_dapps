@@ -107,9 +107,14 @@ CarService.prototype.startIpfs = function(repo, callback) {
 
 }
 
-CarService.prototype.startIpfsApi = function(cb) {
+/**
+ * Initialize and connect IPFS service.
+ * @param {dict} connectionOpts The connection configurations.
+ * @param cb The callback to indicate finish.
+ */
+CarService.prototype.startIpfsApi = function(connectionOpts, cb) {
     var self = this;
-    self.ipfsNode = ipfsAPI({host: 'localhost', port: '5001', protocol: 'http'});
+    self.ipfsNode = ipfsAPI(connectionOpts);
     self.ipfsNode.id((err, identity) => {
         if (err) return cb(err);
         console.log('\nIPFS node id ' + identity.id);
@@ -121,8 +126,8 @@ CarService.prototype.startIpfsApi = function(cb) {
 
 /**
  * Listen to the car command topic from IPFS P2P pubsub network.
- * @param {function} msgReceiver Callback function to process topic data.
- * @param {function} cb Callback to indicate subcribed status.
+ * @param msgReceiver Callback function to process topic data.
+ * @param cb Callback to indicate subcribed status.
  */
 CarService.prototype._subscribe2IPFSCarTopic = function(topic, msgReceiver, cb) {
     var self = this;
@@ -146,6 +151,13 @@ CarService.prototype._subscribe2MQTTCarTopic = function(topic, msgReceiver, cb) 
 
 }
 
+/**
+ * Listen for car topic through pub/sub network.
+ * @param {String} M2MProtocol The M2M network to use, supports 'MQTT' and 'IPFS'.
+ * @param {String} topic The topic to subscribe.
+ * @param msgReceiver The callback to process data.
+ * @param cb The callback to indicate finish of subscription.
+ */
 CarService.prototype.listenCarTopic = function(M2MProtocol, topic, msgReceiver, cb) {
     var self = this;
     switch (M2MProtocol) {
@@ -199,6 +211,7 @@ CarService.prototype.startGPSData = function() {
 
 /**
  * Execute car command.
+ * @param {String} command The name of the command.
  */
 CarService.prototype.execCmd = function (command) {
     var self = this;
