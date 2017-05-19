@@ -2,7 +2,7 @@
 const MQTT_BROKER_WS = 'ws://35.166.170.137:3000';
 const TOPIC_CARSHARING = 'carsharing-car-commands-topic'; 
 
-var web3;
+//var web3;
 var client = mqtt.connect(MQTT_BROKER_WS);
 
 client.on('connect', () => {
@@ -28,7 +28,7 @@ web3.eth.getAccounts((err, accs) => {
   console.log('MQTTT is using eth account ' + acc);
   // TODO: Web3Signer only tested with testrpc, geth may not working with the `eth_sign` 
   // API change https://github.com/ethereum/go-ethereum/issues/3621
-  tClient = new mqttt.MQTTT(acc, new mqttt.signers.Web3Signer(web3, true), MQTT_BROKER_WS);
+  tClient = new mqttt.MQTTT(acc, new mqttt.signers.Web3Signer(web3, 'hashPersonal', 'hashPersonal'), MQTT_BROKER_WS);
 
   tClient.listen(true, (err, msg) => {
     console.log(err, msg);
