@@ -245,10 +245,11 @@ CarSharing.prototype.processCommand = function (msg) {
 
 // -$- Application starts here -$-
 var csDapp = new CarSharing(carconfig['OakenTestCar']);
-csDapp.bootup('infura', () => {
+csDapp.bootup('geth', () => {
     csDapp.car.startGPSData();
-    var privkey = csDapp.web3.currentProvider.wallet.getPrivateKey();
-    var signer = new mqttt.signers.PrivKeySigner(privkey);
+    //var privkey = csDapp.web3.currentProvider.wallet.getPrivateKey();
+    //var signer = new mqttt.signers.PrivKeySigner(privkey);
+    var signer = new mqttt.signers.Web3Signer(csDapp.web3, 'nohash', 'hashPersonal');
     csDapp.startMQTTT(signer);
     csDapp.startProfileUpdateTimer();
 });
